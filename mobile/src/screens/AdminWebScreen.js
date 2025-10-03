@@ -39,27 +39,41 @@ const AdminWebScreen = ({ navigation }) => {
     }
   };
 
-  const handleDeleteQuestion = (question) => {
-    Alert.alert(
-      'Confirmar Exclusão',
-      `Tem certeza que deseja excluir a pergunta ${question.id}?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteQuestion(question.firebaseId);
-              await loadData();
-              Alert.alert('Sucesso', 'Pergunta excluída com sucesso!');
-            } catch (error) {
-              Alert.alert('Erro', 'Não foi possível excluir a pergunta: ' + error.message);
-            }
-          }
+  const handleDeleteQuestion = async (question) => {
+    // Usar window.confirm na web ao invés de Alert.alert
+    const confirmed = Platform.OS === 'web' 
+      ? window.confirm(`Tem certeza que deseja excluir a pergunta ${question.id}?`)
+      : await new Promise((resolve) => {
+          Alert.alert(
+            'Confirmar Exclusão',
+            `Tem certeza que deseja excluir a pergunta ${question.id}?`,
+            [
+              { text: 'Cancelar', style: 'cancel', onPress: () => resolve(false) },
+              { text: 'Excluir', style: 'destructive', onPress: () => resolve(true) }
+            ]
+          );
+        });
+
+    if (confirmed) {
+      try {
+        console.log('Excluindo pergunta:', question.firebaseId);
+        await deleteQuestion(question.firebaseId);
+        await loadData();
+        
+        if (Platform.OS === 'web') {
+          alert('Pergunta excluída com sucesso!');
+        } else {
+          Alert.alert('Sucesso', 'Pergunta excluída com sucesso!');
         }
-      ]
-    );
+      } catch (error) {
+        console.error('Erro ao excluir:', error);
+        if (Platform.OS === 'web') {
+          alert('Erro ao excluir a pergunta: ' + error.message);
+        } else {
+          Alert.alert('Erro', 'Não foi possível excluir a pergunta: ' + error.message);
+        }
+      }
+    }
   };
 
   const handleEditQuestion = (question) => {
