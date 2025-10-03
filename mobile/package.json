@@ -6,7 +6,8 @@
     "start": "set REACT_NATIVE_PACKAGER_HOSTNAME=192.168.18.12 && expo start --lan",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "vercel-build": "expo export --platform web"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

@@ -15,8 +15,5 @@
       "src": "/(.*)",
       "dest": "/mobile/dist/$1"
     }
-  ],
-  "buildCommand": "cd mobile && npm install && npx expo export --platform web",
-  "outputDirectory": "mobile/dist",
-  "installCommand": "cd mobile && npm install"
+  ]
 }
