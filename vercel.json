@@ -1,19 +1,23 @@
 {
   "version": 2,
-  "name": "quiz-odontologia-estetica-expo",
-  "builds": [
-    {
-      "src": "mobile/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
+  "buildCommand": "cd mobile && npm install && npm run vercel-build",
+  "outputDirectory": "mobile/dist",
   "routes": [
     {
+      "src": "/_expo/(.*)",
+      "dest": "/_expo/$1"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json))",
+      "dest": "/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/mobile/dist/$1"
+      "dest": "/index.html"
     }
   ]
 }
