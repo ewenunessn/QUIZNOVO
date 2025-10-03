@@ -5,7 +5,7 @@
       "src": "mobile/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "mobile/dist"
+        "distDir": "dist"
       }
     }
   ],
