@@ -1,18 +1,136 @@
-import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import * as Animatable from 'react-native-animatable';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { colors } from '../../../shared/constants/colors';
+import { colors } from '../constants/colors';
 
 const ResultScreen = ({ navigation, route }) => {
   const { score } = route.params;
   const totalQuestions = 10;
   const percentage = Math.round((score / totalQuestions) * 100);
 
+  // Animações fluidas
+  const iconScale = useRef(new Animated.Value(0)).current;
+  const titleOpacity = useRef(new Animated.Value(0)).current;
+  const titleTranslateY = useRef(new Animated.Value(30)).current;
+  const performanceOpacity = useRef(new Animated.Value(0)).current;
+  const performanceTranslateY = useRef(new Animated.Value(30)).current;
+  const scoreOpacity = useRef(new Animated.Value(0)).current;
+  const scoreTranslateY = useRef(new Animated.Value(30)).current;
+  const progressWidth = useRef(new Animated.Value(0)).current;
+  const prizeOpacity = useRef(new Animated.Value(0)).current;
+  const prizeScale = useRef(new Animated.Value(0.8)).current;
+  const buttonOpacity = useRef(new Animated.Value(0)).current;
+  const buttonScale = useRef(new Animated.Value(0.8)).current;
+
   useEffect(() => {
     saveResult();
+    startAnimations();
   }, []);
+
+  const startAnimations = () => {
+    Animated.sequence([
+      // Ícone bounce
+      Animated.spring(iconScale, {
+        toValue: 1,
+        tension: 100,
+        friction: 6,
+        useNativeDriver: true,
+      }),
+      
+      // Título
+      Animated.parallel([
+        Animated.timing(titleOpacity, {
+          toValue: 1,
+          duration: 600,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.spring(titleTranslateY, {
+          toValue: 0,
+          tension: 100,
+          friction: 8,
+          useNativeDriver: true,
+        })
+      ]),
+      
+      // Performance
+      Animated.parallel([
+        Animated.timing(performanceOpacity, {
+          toValue: 1,
+          duration: 600,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.spring(performanceTranslateY, {
+          toValue: 0,
+          tension: 100,
+          friction: 8,
+          useNativeDriver: true,
+        })
+      ]),
+      
+      // Score
+      Animated.parallel([
+        Animated.timing(scoreOpacity, {
+          toValue: 1,
+          duration: 600,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.spring(scoreTranslateY, {
+          toValue: 0,
+          tension: 100,
+          friction: 8,
+          useNativeDriver: true,
+        })
+      ]),
+    ]).start(() => {
+      // Barra de progresso
+      Animated.timing(progressWidth, {
+        toValue: percentage,
+        duration: 1000,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: false,
+      }).start();
+      
+      // Prize
+      setTimeout(() => {
+        Animated.parallel([
+          Animated.timing(prizeOpacity, {
+            toValue: 1,
+            duration: 600,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.spring(prizeScale, {
+            toValue: 1,
+            tension: 100,
+            friction: 8,
+            useNativeDriver: true,
+          })
+        ]).start();
+      }, 200);
+      
+      // Button
+      setTimeout(() => {
+        Animated.parallel([
+          Animated.timing(buttonOpacity, {
+            toValue: 1,
+            duration: 600,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.spring(buttonScale, {
+            toValue: 1,
+            tension: 100,
+            friction: 8,
+            useNativeDriver: true,
+          })
+        ]).start();
+      }, 400);
+    });
+  };
 
   const saveResult = async () => {
     try {
@@ -49,38 +167,51 @@ const ResultScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <Animatable.View 
-        animation="bounceIn" 
-        duration={1500}
-        style={styles.iconContainer}
+      <Animated.View 
+        style={[
+          styles.iconContainer,
+          { transform: [{ scale: iconScale }] }
+        ]}
       >
         <Ionicons 
           name={getPerformanceIcon()} 
           size={100} 
           color={colors.secondary} 
         />
-      </Animatable.View>
+      </Animated.View>
       
-      <Animatable.Text 
-        animation="fadeInUp" 
-        delay={500}
-        style={styles.title}
+      <Animated.Text 
+        style={[
+          styles.title,
+          {
+            opacity: titleOpacity,
+            transform: [{ translateY: titleTranslateY }]
+          }
+        ]}
       >
         Parabéns!
-      </Animatable.Text>
+      </Animated.Text>
       
-      <Animatable.Text 
-        animation="fadeInUp" 
-        delay={700}
-        style={styles.performanceText}
+      <Animated.Text 
+        style={[
+          styles.performanceText,
+          {
+            opacity: performanceOpacity,
+            transform: [{ translateY: performanceTranslateY }]
+          }
+        ]}
       >
         {getPerformanceMessage()}
-      </Animatable.Text>
+      </Animated.Text>
       
-      <Animatable.View 
-        animation="fadeInUp" 
-        delay={900}
-        style={styles.scoreContainer}
+      <Animated.View 
+        style={[
+          styles.scoreContainer,
+          {
+            opacity: scoreOpacity,
+            transform: [{ translateY: scoreTranslateY }]
+          }
+        ]}
       >
         <Text style={styles.scoreText}>
           Você acertou {score} de {totalQuestions} questões
@@ -88,21 +219,30 @@ const ResultScreen = ({ navigation, route }) => {
         
         <View style={styles.progressContainer}>
           <View style={styles.progressBar}>
-            <Animatable.View 
-              animation="slideInLeft"
-              delay={1200}
-              duration={1000}
-              style={[styles.progressFill, { width: `${percentage}%` }]} 
+            <Animated.View 
+              style={[
+                styles.progressFill, 
+                { 
+                  width: progressWidth.interpolate({
+                    inputRange: [0, 100],
+                    outputRange: ['0%', '100%'],
+                  })
+                }
+              ]} 
             />
           </View>
           <Text style={styles.percentageText}>{percentage}%</Text>
         </View>
-      </Animatable.View>
+      </Animated.View>
       
-      <Animatable.View 
-        animation="fadeInUp" 
-        delay={1400}
-        style={styles.prizeContainer}
+      <Animated.View 
+        style={[
+          styles.prizeContainer,
+          {
+            opacity: prizeOpacity,
+            transform: [{ scale: prizeScale }]
+          }
+        ]}
       >
         <View style={styles.prizeCard}>
           <Ionicons name="gift" size={40} color={colors.primary} />
@@ -111,9 +251,14 @@ const ResultScreen = ({ navigation, route }) => {
             Procure nossa equipe para retirar seu presente especial por ter participado do quiz.
           </Text>
         </View>
-      </Animatable.View>
+      </Animated.View>
       
-      <Animatable.View animation="fadeInUp" delay={1600}>
+      <Animated.View 
+        style={{
+          opacity: buttonOpacity,
+          transform: [{ scale: buttonScale }]
+        }}
+      >
         <TouchableOpacity 
           style={styles.button}
           onPress={() => navigation.navigate('Welcome')}
@@ -121,7 +266,7 @@ const ResultScreen = ({ navigation, route }) => {
           <Ionicons name="home" size={20} color={colors.white} />
           <Text style={styles.buttonText}>Voltar ao Início</Text>
         </TouchableOpacity>
-      </Animatable.View>
+      </Animated.View>
     </View>
   );
 };
@@ -175,6 +320,7 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     backgroundColor: colors.secondary,
+    borderRadius: 6,
   },
   percentageText: {
     fontSize: 24,

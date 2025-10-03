@@ -1,9 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { colors } from '../constants/colors';
 
-const HomeScreen = () => {
-  const navigate = useNavigate();
+const HomeScreen = ({ navigation }) => {
 
   const styles = {
     container: {
@@ -85,7 +83,7 @@ const HomeScreen = () => {
         
         <button 
           style={styles.button}
-          onClick={() => navigate('/instructions')}
+          onClick={() => navigation('instructions')}
           onMouseEnter={handleButtonHover}
           onMouseLeave={handleButtonLeave}
         >

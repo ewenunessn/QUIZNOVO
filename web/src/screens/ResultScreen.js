@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { colors } from '../constants/colors';
 
-const ResultScreen = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const score = location.state?.score || 0;
+const ResultScreen = ({ navigation, result }) => {
+  const score = result?.score || 0;
   const totalQuestions = 10;
   const percentage = Math.round((score / totalQuestions) * 100);
   const [isVisible, setIsVisible] = useState(false);
@@ -206,7 +203,7 @@ const ResultScreen = () => {
       
       <button 
         style={styles.button}
-        onClick={() => navigate('/')}
+        onClick={() => navigation('welcome')}
         onMouseEnter={handleButtonHover}
         onMouseLeave={handleButtonLeave}
       >

@@ -1,33 +1,129 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import * as Animatable from 'react-native-animatable';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing, Alert, BackHandler } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../../shared/constants/colors';
-import { questions } from '../../../shared/data/questions';
+import { useFocusEffect } from '@react-navigation/native';
+import { colors } from '../constants/colors';
+import { questions } from '../data/questions';
 
 const QuizScreen = ({ navigation }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [showExplanation, setShowExplanation] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isCorrect, setIsCorrect] = useState(false);
+
+  // Animações apenas com opacity - zero artefatos
+  const progressWidth = useRef(new Animated.Value(0)).current;
+  const scoreScale = useRef(new Animated.Value(1)).current;
+  const questionOpacity = useRef(new Animated.Value(1)).current;
+  const buttonsOpacity = useRef(new Animated.Value(1)).current;
+  const explanationOpacity = useRef(new Animated.Value(0)).current;
 
   const handleAnswer = (answer) => {
     const correct = answer === questions[currentQuestion].resposta;
-    setSelectedAnswer(answer);
     setIsCorrect(correct);
-    setShowExplanation(true);
-    
+
+    // Fade out dos botões
+    Animated.timing(buttonsOpacity, {
+      toValue: 0,
+      duration: 300,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start(() => {
+      setShowExplanation(true);
+
+      // Fade in da explicação
+      Animated.timing(explanationOpacity, {
+        toValue: 1,
+        duration: 400,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }).start();
+    });
+
     if (correct) {
       setScore(score + 1);
+      // Animação no score
+      Animated.sequence([
+        Animated.spring(scoreScale, {
+          toValue: 1.2,
+          tension: 200,
+          friction: 4,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scoreScale, {
+          toValue: 1,
+          tension: 200,
+          friction: 8,
+          useNativeDriver: true,
+        })
+      ]).start();
     }
+  };
+
+
+
+  const confirmExit = () => {
+    Alert.alert(
+      'Sair do Quiz?',
+      'Você perderá todo o progresso atual. Tem certeza que deseja sair?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Sair',
+          style: 'destructive',
+          onPress: () => navigation.goBack(),
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const nextQuestion = () => {
     if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      setShowExplanation(false);
-      setSelectedAnswer(null);
+      // Fade out tudo
+      Animated.parallel([
+        Animated.timing(questionOpacity, {
+          toValue: 0,
+          duration: 250,
+          easing: Easing.in(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(explanationOpacity, {
+          toValue: 0,
+          duration: 250,
+          easing: Easing.in(Easing.quad),
+          useNativeDriver: true,
+        })
+      ]).start(() => {
+        // Resetar estados
+        setCurrentQuestion(currentQuestion + 1);
+        setShowExplanation(false);
+
+        // Resetar valores
+        buttonsOpacity.setValue(0);
+        explanationOpacity.setValue(0);
+
+        // Fade in da nova pergunta
+        Animated.timing(questionOpacity, {
+          toValue: 1,
+          duration: 400,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }).start();
+
+        // Botões aparecem depois
+        setTimeout(() => {
+          Animated.timing(buttonsOpacity, {
+            toValue: 1,
+            duration: 400,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }).start();
+        }, 200);
+      });
     } else {
       navigation.navigate('Result', { score: score + (isCorrect ? 1 : 0) });
     }
@@ -35,83 +131,178 @@ const QuizScreen = ({ navigation }) => {
 
   const progress = ((currentQuestion + 1) / questions.length) * 100;
 
+  // Animar barra de progresso
+  useEffect(() => {
+    Animated.timing(progressWidth, {
+      toValue: progress,
+      duration: 600,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: false,
+    }).start();
+  }, [currentQuestion]);
+
+  // Animação inicial
+  useEffect(() => {
+    Animated.timing(questionOpacity, {
+      toValue: 1,
+      duration: 600,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
+
+    setTimeout(() => {
+      Animated.timing(buttonsOpacity, {
+        toValue: 1,
+        duration: 400,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }).start();
+    }, 300);
+  }, []);
+
+  // Intercepta o botão de voltar do Android
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        confirmExit();
+        return true; // Impede o comportamento padrão
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => subscription?.remove();
+    }, [])
+  );
+
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Header com barra de progresso moderna */}
       <View style={styles.header}>
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progress}%` }]} />
-          </View>
-          <Text style={styles.progressText}>
-            {currentQuestion + 1} de {questions.length}
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={confirmExit}
+        >
+          <Ionicons name="arrow-back" size={24} color={colors.primary} />
+        </TouchableOpacity>
+        
+        <View style={styles.progressSection}>
+          <Text style={styles.questionNumber}>
+            {String(currentQuestion + 1).padStart(2, '0')}
           </Text>
+          <View style={styles.progressContainer}>
+            <View style={styles.progressTrack}>
+              <Animated.View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: progressWidth.interpolate({
+                      inputRange: [0, 100],
+                      outputRange: ['0%', '100%'],
+                    })
+                  }
+                ]}
+              />
+            </View>
+            <Text style={styles.totalQuestions}>/{questions.length}</Text>
+          </View>
         </View>
+
         <View style={styles.scoreContainer}>
-          <Ionicons name="star" size={20} color={colors.secondary} />
-          <Text style={styles.scoreText}>{score}</Text>
+          <View style={styles.scoreBadge}>
+            <Ionicons name="star" size={16} color={colors.secondary} />
+            <Animated.Text
+              style={[
+                styles.scoreText,
+                { transform: [{ scale: scoreScale }] }
+              ]}
+            >
+              {score}
+            </Animated.Text>
+          </View>
         </View>
       </View>
 
-      {/* Question */}
-      <Animatable.View 
-        key={currentQuestion}
-        animation="fadeInUp"
-        style={styles.questionContainer}
+      {/* Question Card */}
+      <Animated.View
+        style={[
+          styles.questionCard,
+          { opacity: questionOpacity }
+        ]}
       >
+        {/* Círculo com ícone no topo */}
+        <View style={styles.iconCircle}>
+          <Ionicons name={questions[currentQuestion].icon} size={28} color={colors.white} />
+        </View>
+
         <Text style={styles.questionText}>
           {questions[currentQuestion].pergunta}
         </Text>
-      </Animatable.View>
+      </Animated.View>
 
       {/* Answer Buttons */}
       {!showExplanation && (
-        <Animatable.View animation="fadeInUp" delay={300} style={styles.buttonsContainer}>
-          <TouchableOpacity 
+        <Animated.View
+          style={[
+            styles.answersContainer,
+            { opacity: buttonsOpacity }
+          ]}
+        >
+          <TouchableOpacity
             style={[styles.answerButton, styles.trueButton]}
             onPress={() => handleAnswer(true)}
           >
-            <Ionicons name="checkmark" size={24} color={colors.white} />
-            <Text style={styles.answerButtonText}>Verdadeiro</Text>
+            <View style={styles.answerLetter}>
+              <Text style={styles.answerLetterText}>V</Text>
+            </View>
+            <Text style={styles.answerText}>Verdadeiro</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={[styles.answerButton, styles.falseButton]}
             onPress={() => handleAnswer(false)}
           >
-            <Ionicons name="close" size={24} color={colors.white} />
-            <Text style={styles.answerButtonText}>Falso</Text>
+            <View style={styles.answerLetter}>
+              <Text style={styles.answerLetterText}>F</Text>
+            </View>
+            <Text style={styles.answerText}>Falso</Text>
           </TouchableOpacity>
-        </Animatable.View>
+        </Animated.View>
       )}
 
       {/* Explanation */}
       {showExplanation && (
-        <Animatable.View animation="fadeInUp" style={styles.explanationContainer}>
-          <View style={[
-            styles.resultIndicator, 
-            { backgroundColor: isCorrect ? colors.success : colors.error }
-          ]}>
-            <Ionicons 
-              name={isCorrect ? "checkmark-circle" : "close-circle"} 
-              size={30} 
-              color={colors.white} 
+        <Animated.View
+          style={[
+            styles.explanationContainer,
+            { opacity: explanationOpacity }
+          ]}
+        >
+          <View
+            style={[
+              styles.resultBanner,
+              { backgroundColor: isCorrect ? colors.success : colors.error }
+            ]}
+          >
+            <Ionicons
+              name={isCorrect ? "checkmark-circle" : "close-circle"}
+              size={24}
+              color={colors.white}
             />
             <Text style={styles.resultText}>
               {isCorrect ? 'Correto!' : 'Incorreto!'}
             </Text>
           </View>
-          
+
           <View style={styles.explanationCard}>
-            <Text style={styles.correctAnswerText}>
+            <Text style={styles.correctAnswerLabel}>
               Resposta correta: {questions[currentQuestion].resposta ? 'Verdadeiro' : 'Falso'}
             </Text>
             <Text style={styles.explanationText}>
               {questions[currentQuestion].explicacao}
             </Text>
           </View>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.nextButton}
             onPress={nextQuestion}
           >
@@ -120,7 +311,7 @@ const QuizScreen = ({ navigation }) => {
             </Text>
             <Ionicons name="arrow-forward" size={20} color={colors.white} />
           </TouchableOpacity>
-        </Animatable.View>
+        </Animated.View>
       )}
     </View>
   );
@@ -129,150 +320,196 @@ const QuizScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.lightGray,
-    paddingTop: 50,
+    backgroundColor: colors.secondary,
+    paddingTop: 60,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 30,
+    paddingHorizontal: 24,
+    marginBottom: 40,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  progressSection: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  questionNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginRight: 12,
   },
   progressContainer: {
     flex: 1,
-    marginRight: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  progressBar: {
+  progressTrack: {
+    flex: 1,
     height: 8,
-    backgroundColor: colors.white,
+    backgroundColor: 'rgba(3, 56, 96, 0.2)',
     borderRadius: 4,
     overflow: 'hidden',
+    marginRight: 8,
   },
   progressFill: {
     height: '100%',
     backgroundColor: colors.primary,
+    borderRadius: 4,
   },
-  progressText: {
-    fontSize: 14,
-    color: colors.gray,
-    marginTop: 5,
+  totalQuestions: {
+    fontSize: 16,
+    color: colors.primary,
+    fontWeight: '600',
   },
   scoreContainer: {
+    marginLeft: 16,
+  },
+  scoreBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: colors.white,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
   scoreText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: colors.primary,
-    marginLeft: 5,
+    marginLeft: 4,
   },
-  questionContainer: {
+  questionCard: {
     backgroundColor: colors.white,
-    margin: 20,
-    padding: 25,
-    borderRadius: 15,
-    elevation: 3,
+    marginHorizontal: 24,
+    padding: 32,
+    paddingTop: 48,
+    borderRadius: 24,
+    marginBottom: 40,
+    position: 'relative',
+  },
+  iconCircle: {
+    position: 'absolute',
+    top: -24,
+    alignSelf: 'center',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   questionText: {
-    fontSize: 18,
+    fontSize: 20,
     color: colors.primary,
-    textAlign: 'center',
-    lineHeight: 24,
+    textAlign: 'justify',
+    lineHeight: 28,
     fontWeight: '500',
   },
-  buttonsContainer: {
-    paddingHorizontal: 20,
-    marginTop: 20,
+  answersContainer: {
+    paddingHorizontal: 24,
   },
   answerButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 15,
-    borderRadius: 25,
-    marginBottom: 15,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    backgroundColor: colors.primary,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    marginBottom: 16,
+    width: '100%',
+    flex: 1,
   },
   trueButton: {
-    backgroundColor: colors.success,
+    opacity: 0.9,
   },
   falseButton: {
     backgroundColor: colors.error,
+    opacity: 0.9,
   },
-  answerButtonText: {
-    color: colors.white,
-    fontSize: 18,
+  answerLetter: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  answerLetterText: {
+    fontSize: 16,
     fontWeight: 'bold',
-    marginLeft: 10,
+    color: colors.primary,
+  },
+  answerText: {
+    fontSize: 18,
+    color: colors.white,
+    fontWeight: '500',
   },
   explanationContainer: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
-  resultIndicator: {
+  resultBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
-    borderRadius: 25,
-    marginBottom: 20,
+    paddingVertical: 16,
+    borderRadius: 16,
+    marginBottom: 24,
   },
   resultText: {
     color: colors.white,
     fontSize: 18,
     fontWeight: 'bold',
-    marginLeft: 10,
+    marginLeft: 8,
   },
   explanationCard: {
     backgroundColor: colors.white,
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 20,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    padding: 24,
+    borderRadius: 20,
+    marginBottom: 24,
   },
-  correctAnswerText: {
+  correctAnswerLabel: {
     fontSize: 16,
     fontWeight: 'bold',
     color: colors.primary,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   explanationText: {
     fontSize: 16,
     color: colors.gray,
-    lineHeight: 22,
+    lineHeight: 24,
   },
   nextButton: {
     backgroundColor: colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
-    borderRadius: 25,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    paddingVertical: 16,
+    borderRadius: 20,
   },
   nextButtonText: {
     color: colors.white,
     fontSize: 18,
     fontWeight: 'bold',
-    marginRight: 10,
+    marginRight: 8,
   },
 });
 

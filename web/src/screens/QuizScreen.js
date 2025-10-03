@@ -1,19 +1,22 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { colors } from '../constants/colors';
 import { questions } from '../data/questions';
+import Icon from '../components/Icon';
 
-const QuizScreen = () => {
-  const navigate = useNavigate();
+const QuizScreen = ({ navigation }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [showExplanation, setShowExplanation] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isCorrect, setIsCorrect] = useState(false);
+
+  const confirmExit = () => {
+    if (window.confirm('Sair do Quiz?\n\nVocê perderá todo o progresso atual. Tem certeza que deseja sair?')) {
+      navigation();
+    }
+  };
 
   const handleAnswer = (answer) => {
     const correct = answer === questions[currentQuestion].resposta;
-    setSelectedAnswer(answer);
     setIsCorrect(correct);
     setShowExplanation(true);
     
@@ -26,215 +29,300 @@ const QuizScreen = () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setShowExplanation(false);
-      setSelectedAnswer(null);
     } else {
-      navigate('/result', { state: { score: score + (isCorrect ? 1 : 0) } });
+      navigation({ score: score + (isCorrect ? 1 : 0) });
     }
   };
 
   const progress = ((currentQuestion + 1) / questions.length) * 100;
 
+  // Intercepta o botão de voltar do navegador
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+
+    const handlePopState = (e) => {
+      e.preventDefault();
+      confirmExit();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
   const styles = {
     container: {
       minHeight: '100vh',
-      backgroundColor: '#f5f5f5',
-      paddingTop: '50px',
+      backgroundColor: colors.secondary,
+      paddingTop: '60px',
     },
     header: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '0 20px',
-      marginBottom: '30px',
-      maxWidth: '800px',
-      margin: '0 auto 30px auto',
+      padding: '0 24px',
+      marginBottom: '40px',
+    },
+    backButton: {
+      width: '40px',
+      height: '40px',
+      borderRadius: '20px',
+      backgroundColor: colors.white,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: '16px',
+      cursor: 'pointer',
+      border: 'none',
+    },
+    progressSection: {
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+    },
+    questionNumber: {
+      fontSize: '24px',
+      fontWeight: 'bold',
+      color: colors.primary,
+      marginRight: '12px',
     },
     progressContainer: {
       flex: 1,
-      marginRight: '20px',
+      display: 'flex',
+      alignItems: 'center',
     },
-    progressBar: {
+    progressTrack: {
+      flex: 1,
       height: '8px',
-      backgroundColor: colors.white,
+      backgroundColor: 'rgba(3, 56, 96, 0.2)',
       borderRadius: '4px',
       overflow: 'hidden',
+      marginRight: '8px',
     },
     progressFill: {
       height: '100%',
       backgroundColor: colors.primary,
+      borderRadius: '4px',
       width: `${progress}%`,
-      transition: 'width 0.3s ease',
+      transition: 'width 0.5s ease-out',
     },
-    progressText: {
-      fontSize: '14px',
-      color: colors.gray,
-      marginTop: '5px',
+    totalQuestions: {
+      fontSize: '16px',
+      color: colors.primary,
+      fontWeight: '600',
     },
     scoreContainer: {
+      marginLeft: '16px',
+    },
+    scoreBadge: {
       display: 'flex',
       alignItems: 'center',
+      backgroundColor: colors.white,
+      padding: '6px 12px',
+      borderRadius: '20px',
     },
     scoreText: {
-      fontSize: '18px',
+      fontSize: '16px',
       fontWeight: 'bold',
       color: colors.primary,
-      marginLeft: '5px',
+      marginLeft: '4px',
     },
-    questionContainer: {
+    questionCard: {
       backgroundColor: colors.white,
-      margin: '0 20px 20px 20px',
-      padding: '25px',
-      borderRadius: '15px',
-      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-      maxWidth: '800px',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      animation: 'fadeIn 0.6s ease-out',
+      margin: '0 24px 40px 24px',
+      padding: '32px',
+      paddingTop: '48px',
+      borderRadius: '24px',
+      position: 'relative',
     },
+    iconCircle: {
+      position: 'absolute',
+      top: '-24px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      width: '48px',
+      height: '48px',
+      borderRadius: '24px',
+      backgroundColor: colors.primary,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+    },
+
     questionText: {
-      fontSize: '18px',
+      fontSize: '20px',
       color: colors.primary,
-      textAlign: 'center',
-      lineHeight: '24px',
+      textAlign: 'justify',
+      lineHeight: '28px',
       fontWeight: '500',
     },
-    buttonsContainer: {
-      padding: '0 20px',
-      marginTop: '20px',
-      maxWidth: '800px',
-      margin: '20px auto 0 auto',
+    answersContainer: {
+      padding: '0 24px',
     },
     answerButton: {
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
-      padding: '15px',
-      borderRadius: '25px',
-      marginBottom: '15px',
-      border: 'none',
-      fontSize: '18px',
-      fontWeight: 'bold',
+      backgroundColor: colors.primary,
+      padding: '20px 24px',
+      borderRadius: '20px',
+      marginBottom: '16px',
       cursor: 'pointer',
-      boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-      transition: 'transform 0.2s, box-shadow 0.2s',
+      border: 'none',
+      opacity: 0.9,
+      transition: 'opacity 0.2s',
       width: '100%',
-    },
-    trueButton: {
-      backgroundColor: colors.success,
-      color: colors.white,
+      boxSizing: 'border-box',
     },
     falseButton: {
       backgroundColor: colors.error,
-      color: colors.white,
     },
-    explanationContainer: {
-      padding: '0 20px',
-      maxWidth: '800px',
-      margin: '0 auto',
-    },
-    resultIndicator: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '15px',
-      borderRadius: '25px',
-      marginBottom: '20px',
-      color: colors.white,
-      fontSize: '18px',
-      fontWeight: 'bold',
-    },
-    explanationCard: {
+    answerLetter: {
+      width: '32px',
+      height: '32px',
+      borderRadius: '16px',
       backgroundColor: colors.white,
-      padding: '20px',
-      borderRadius: '15px',
-      marginBottom: '20px',
-      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: '16px',
     },
-    correctAnswerText: {
+    answerLetterText: {
       fontSize: '16px',
       fontWeight: 'bold',
       color: colors.primary,
-      marginBottom: '10px',
+    },
+    answerText: {
+      fontSize: '18px',
+      color: colors.white,
+      fontWeight: '500',
+    },
+    explanationContainer: {
+      flex: 1,
+      padding: '0 24px',
+    },
+    resultBanner: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '16px',
+      borderRadius: '16px',
+      marginBottom: '24px',
+    },
+    resultText: {
+      color: colors.white,
+      fontSize: '18px',
+      fontWeight: 'bold',
+      marginLeft: '8px',
+    },
+    explanationCard: {
+      backgroundColor: colors.white,
+      padding: '24px',
+      borderRadius: '20px',
+      marginBottom: '24px',
+    },
+    correctAnswerLabel: {
+      fontSize: '16px',
+      fontWeight: 'bold',
+      color: colors.primary,
+      marginBottom: '12px',
     },
     explanationText: {
       fontSize: '16px',
       color: colors.gray,
-      lineHeight: '22px',
+      lineHeight: '24px',
     },
     nextButton: {
       backgroundColor: colors.primary,
-      color: colors.white,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '15px',
-      borderRadius: '25px',
+      padding: '20px 24px',
+      borderRadius: '20px',
+      cursor: 'pointer',
       border: 'none',
+      width: '100%',
+      boxSizing: 'border-box',
+    },
+    nextButtonText: {
+      color: colors.white,
       fontSize: '18px',
       fontWeight: 'bold',
-      cursor: 'pointer',
-      boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-      transition: 'transform 0.2s, box-shadow 0.2s',
-      width: '100%',
+      marginRight: '8px',
     },
-  };
-
-  const handleButtonHover = (e) => {
-    e.target.style.transform = 'translateY(-2px)';
-    e.target.style.boxShadow = '0 6px 12px rgba(0,0,0,0.3)';
-  };
-
-  const handleButtonLeave = (e) => {
-    e.target.style.transform = 'translateY(0)';
-    e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
   };
 
   return (
     <div style={styles.container}>
-      {/* Header */}
+      {/* Header com barra de progresso moderna */}
       <div style={styles.header}>
-        <div style={styles.progressContainer}>
-          <div style={styles.progressBar}>
-            <div style={styles.progressFill} />
+        <button 
+          style={styles.backButton}
+          onClick={confirmExit}
+        >
+          <Icon name="arrow-back" size={20} color={colors.primary} />
+        </button>
+        
+        <div style={styles.progressSection}>
+          <div style={styles.questionNumber}>
+            {String(currentQuestion + 1).padStart(2, '0')}
           </div>
-          <div style={styles.progressText}>
-            {currentQuestion + 1} de {questions.length}
+          <div style={styles.progressContainer}>
+            <div style={styles.progressTrack}>
+              <div style={styles.progressFill} />
+            </div>
+            <div style={styles.totalQuestions}>/{questions.length}</div>
           </div>
         </div>
+        
         <div style={styles.scoreContainer}>
-          <span style={{ color: colors.secondary, fontSize: '20px' }}>⭐</span>
-          <span style={styles.scoreText}>{score}</span>
+          <div style={styles.scoreBadge}>
+            <Icon name="star" size={16} color={colors.secondary} />
+            <span style={styles.scoreText}>{score}</span>
+          </div>
         </div>
       </div>
 
-      {/* Question */}
-      <div style={styles.questionContainer}>
-        <p style={styles.questionText}>
+      {/* Question Card */}
+      <div style={styles.questionCard}>
+        {/* Círculo com ícone no topo */}
+        <div style={styles.iconCircle}>
+          <Icon name={questions[currentQuestion].icon} size={28} />
+        </div>
+        
+        <div style={styles.questionText}>
           {questions[currentQuestion].pergunta}
-        </p>
+        </div>
       </div>
 
       {/* Answer Buttons */}
       {!showExplanation && (
-        <div style={styles.buttonsContainer}>
+        <div style={styles.answersContainer}>
           <button 
-            style={{...styles.answerButton, ...styles.trueButton}}
+            style={styles.answerButton}
             onClick={() => handleAnswer(true)}
-            onMouseEnter={handleButtonHover}
-            onMouseLeave={handleButtonLeave}
           >
-            <span style={{ marginRight: '10px' }}>✓</span>
-            Verdadeiro
+            <div style={styles.answerLetter}>
+              <span style={styles.answerLetterText}>V</span>
+            </div>
+            <span style={styles.answerText}>Verdadeiro</span>
           </button>
           
           <button 
             style={{...styles.answerButton, ...styles.falseButton}}
             onClick={() => handleAnswer(false)}
-            onMouseEnter={handleButtonHover}
-            onMouseLeave={handleButtonLeave}
           >
-            <span style={{ marginRight: '10px' }}>✗</span>
-            Falso
+            <div style={styles.answerLetter}>
+              <span style={styles.answerLetterText}>F</span>
+            </div>
+            <span style={styles.answerText}>Falso</span>
           </button>
         </div>
       )}
@@ -242,33 +330,35 @@ const QuizScreen = () => {
       {/* Explanation */}
       {showExplanation && (
         <div style={styles.explanationContainer}>
-          <div style={{
-            ...styles.resultIndicator,
-            backgroundColor: isCorrect ? colors.success : colors.error
-          }}>
-            <span style={{ marginRight: '10px' }}>
-              {isCorrect ? '✓' : '✗'}
+          <div 
+            style={{
+              ...styles.resultBanner,
+              backgroundColor: isCorrect ? colors.success : colors.error
+            }}
+          >
+            <Icon name={isCorrect ? "checkmark-circle" : "close-circle"} size={24} color={isCorrect ? colors.success : colors.error} />
+            <span style={styles.resultText}>
+              {isCorrect ? 'Correto!' : 'Incorreto!'}
             </span>
-            {isCorrect ? 'Correto!' : 'Incorreto!'}
           </div>
           
           <div style={styles.explanationCard}>
-            <p style={styles.correctAnswerText}>
+            <div style={styles.correctAnswerLabel}>
               Resposta correta: {questions[currentQuestion].resposta ? 'Verdadeiro' : 'Falso'}
-            </p>
-            <p style={styles.explanationText}>
+            </div>
+            <div style={styles.explanationText}>
               {questions[currentQuestion].explicacao}
-            </p>
+            </div>
           </div>
           
           <button 
             style={styles.nextButton}
             onClick={nextQuestion}
-            onMouseEnter={handleButtonHover}
-            onMouseLeave={handleButtonLeave}
           >
-            {currentQuestion < questions.length - 1 ? 'Próxima Questão' : 'Ver Resultado'}
-            <span style={{ marginLeft: '10px' }}>→</span>
+            <span style={styles.nextButtonText}>
+              {currentQuestion < questions.length - 1 ? 'Próxima Questão' : 'Ver Resultado'}
+            </span>
+            <Icon name="arrow-forward" size={20} color={colors.white} />
           </button>
         </div>
       )}

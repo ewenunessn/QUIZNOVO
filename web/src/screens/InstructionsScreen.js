@@ -1,9 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { colors } from '../constants/colors';
 
-const InstructionsScreen = () => {
-  const navigate = useNavigate();
+const InstructionsScreen = ({ navigation }) => {
 
   const instructions = [
     "Você receberá 10 questões sobre odontologia estética",
@@ -116,7 +114,7 @@ const InstructionsScreen = () => {
         
         <button 
           style={styles.button}
-          onClick={() => navigate('/quiz')}
+          onClick={() => navigation('quiz')}
           onMouseEnter={handleButtonHover}
           onMouseLeave={handleButtonLeave}
         >

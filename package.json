@@ -1,0 +1,18 @@
+{
+  "name": "quiz-odontologia-estetica",
+  "version": "1.0.0",
+  "description": "Quiz sobre Odontologia Estética - Versão Web",
+  "main": "index.js",
+  "scripts": {
+    "build": "cd web && npm install && npm run build",
+    "start": "cd web && npm start",
+    "deploy": "vercel --prod"
+  },
+  "keywords": ["quiz", "odontologia", "educacao", "react"],
+  "author": "Ewerton",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}
