@@ -150,7 +150,10 @@ const QuizScreen = ({ navigation }) => {
         }, 200);
       });
     } else {
-      navigation.navigate('Result', { score: score + (isCorrect ? 1 : 0) });
+      navigation.navigate('Result', { 
+        score: score + (isCorrect ? 1 : 0),
+        totalQuestions: questions.length 
+      });
     }
   };
 

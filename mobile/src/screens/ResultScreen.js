@@ -6,8 +6,7 @@ import { colors } from '../constants/colors';
 import { getAppSettings } from '../services/questionsService';
 
 const ResultScreen = ({ navigation, route }) => {
-  const { score } = route.params;
-  const totalQuestions = 10;
+  const { score, totalQuestions = 10 } = route.params;
   const percentage = Math.round((score / totalQuestions) * 100);
   const [prizeMessage, setPrizeMessage] = useState('Procure nossa equipe para retirar seu presente especial por ter participado do quiz.');
 
@@ -48,7 +47,7 @@ const ResultScreen = ({ navigation, route }) => {
       // Ícone bounce
       Animated.spring(iconScale, {
         toValue: 1,
-        tension: 100,
+        tension: 150,
         friction: 6,
         useNativeDriver: true,
       }),
@@ -57,13 +56,13 @@ const ResultScreen = ({ navigation, route }) => {
       Animated.parallel([
         Animated.timing(titleOpacity, {
           toValue: 1,
-          duration: 600,
+          duration: 300,
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
         Animated.spring(titleTranslateY, {
           toValue: 0,
-          tension: 100,
+          tension: 150,
           friction: 8,
           useNativeDriver: true,
         })
@@ -73,13 +72,13 @@ const ResultScreen = ({ navigation, route }) => {
       Animated.parallel([
         Animated.timing(performanceOpacity, {
           toValue: 1,
-          duration: 600,
+          duration: 300,
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
         Animated.spring(performanceTranslateY, {
           toValue: 0,
-          tension: 100,
+          tension: 150,
           friction: 8,
           useNativeDriver: true,
         })
@@ -89,13 +88,13 @@ const ResultScreen = ({ navigation, route }) => {
       Animated.parallel([
         Animated.timing(scoreOpacity, {
           toValue: 1,
-          duration: 600,
+          duration: 300,
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
         Animated.spring(scoreTranslateY, {
           toValue: 0,
-          tension: 100,
+          tension: 150,
           friction: 8,
           useNativeDriver: true,
         })
@@ -104,7 +103,7 @@ const ResultScreen = ({ navigation, route }) => {
       // Barra de progresso
       Animated.timing(progressWidth, {
         toValue: percentage,
-        duration: 1000,
+        duration: 600,
         easing: Easing.out(Easing.quad),
         useNativeDriver: false,
       }).start();
@@ -114,36 +113,36 @@ const ResultScreen = ({ navigation, route }) => {
         Animated.parallel([
           Animated.timing(prizeOpacity, {
             toValue: 1,
-            duration: 600,
+            duration: 300,
             easing: Easing.out(Easing.quad),
             useNativeDriver: true,
           }),
           Animated.spring(prizeScale, {
             toValue: 1,
-            tension: 100,
+            tension: 150,
             friction: 8,
             useNativeDriver: true,
           })
         ]).start();
-      }, 200);
+      }, 100);
       
       // Button
       setTimeout(() => {
         Animated.parallel([
           Animated.timing(buttonOpacity, {
             toValue: 1,
-            duration: 600,
+            duration: 300,
             easing: Easing.out(Easing.quad),
             useNativeDriver: true,
           }),
           Animated.spring(buttonScale, {
             toValue: 1,
-            tension: 100,
+            tension: 150,
             friction: 8,
             useNativeDriver: true,
           })
         ]).start();
-      }, 400);
+      }, 200);
     });
   };
 
@@ -292,63 +291,66 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
   },
   iconContainer: {
-    marginBottom: 30,
+    marginBottom: 20,
   },
   title: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: 'bold',
     color: colors.white,
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   performanceText: {
-    fontSize: 20,
+    fontSize: 18,
     color: colors.secondary,
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 30,
   },
   scoreContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 30,
   },
   scoreText: {
-    fontSize: 18,
+    fontSize: 16,
     color: colors.white,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   progressContainer: {
-    width: 250,
+    width: '100%',
+    maxWidth: 250,
     alignItems: 'center',
   },
   progressBar: {
     width: '100%',
-    height: 12,
+    height: 10,
     backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 6,
+    borderRadius: 5,
     overflow: 'hidden',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   progressFill: {
     height: '100%',
     backgroundColor: colors.secondary,
-    borderRadius: 6,
+    borderRadius: 5,
   },
   percentageText: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: colors.secondary,
   },
   prizeContainer: {
-    marginBottom: 40,
+    marginBottom: 30,
+    width: '100%',
   },
   prizeCard: {
     backgroundColor: colors.white,
-    padding: 25,
-    borderRadius: 20,
+    padding: 20,
+    borderRadius: 16,
     alignItems: 'center',
     elevation: 5,
     shadowColor: '#000',
@@ -357,25 +359,25 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   prizeTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: colors.primary,
     textAlign: 'center',
-    marginVertical: 15,
+    marginVertical: 12,
   },
   prizeText: {
-    fontSize: 14,
+    fontSize: 13,
     color: colors.gray,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 18,
   },
   button: {
     backgroundColor: colors.secondary,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 25,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -384,9 +386,9 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.primary,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginLeft: 10,
+    marginLeft: 8,
   },
 });
 
