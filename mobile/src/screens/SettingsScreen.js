@@ -3,11 +3,13 @@ import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert, Platform } 
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '../constants/colors';
+import { initializeDefaultData } from '../services/questionsService';
 
 const SettingsScreen = ({ navigation }) => {
   const [userName, setUserName] = useState('');
   const [newName, setNewName] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [adminTaps, setAdminTaps] = useState(0);
 
   useEffect(() => {
     loadUserName();
@@ -45,6 +47,39 @@ const SettingsScreen = ({ navigation }) => {
   const cancelEdit = () => {
     setNewName(userName);
     setIsEditing(false);
+  };
+
+  const handleAdminAccess = async () => {
+    const newTapCount = adminTaps + 1;
+    setAdminTaps(newTapCount);
+
+    if (newTapCount >= 7) {
+      Alert.alert(
+        'Acesso Administrativo',
+        'Deseja acessar o painel de administração?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Acessar',
+            onPress: async () => {
+              try {
+                // Inicializar dados padrão se necessário
+                await initializeDefaultData();
+                navigation.navigate('Admin');
+              } catch (error) {
+                Alert.alert('Erro', 'Não foi possível acessar a administração: ' + error.message);
+              }
+            }
+          }
+        ]
+      );
+      setAdminTaps(0);
+    }
+
+    // Reset após 3 segundos
+    setTimeout(() => {
+      setAdminTaps(0);
+    }, 3000);
   };
 
   return (
@@ -121,13 +156,22 @@ const SettingsScreen = ({ navigation }) => {
             <Text style={styles.sectionTitle}>Sobre o App</Text>
           </View>
 
-          <View style={styles.infoCard}>
+          <TouchableOpacity 
+            style={styles.infoCard}
+            onPress={handleAdminAccess}
+            activeOpacity={0.8}
+          >
             <Text style={styles.appName}>Quiz Odontologia Estética</Text>
             <Text style={styles.appVersion}>Versão 1.0.0</Text>
             <Text style={styles.appDescription}>
               Desenvolvido para ensinar sobre os bastidores da odontologia estética
             </Text>
-          </View>
+            {adminTaps > 0 && adminTaps < 7 && (
+              <Text style={styles.adminHint}>
+                Toque mais {7 - adminTaps} vezes para acessar admin
+              </Text>
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* Logout Section */}
@@ -306,6 +350,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.gray,
     lineHeight: 20,
+  },
+  adminHint: {
+    fontSize: 12,
+    color: colors.primary,
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   logoutButton: {
     backgroundColor: colors.white,
