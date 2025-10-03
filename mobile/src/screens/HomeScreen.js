@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
 import { colors } from '../constants/colors';
 import { getAppSettings } from '../services/questionsService';
 
@@ -33,7 +32,11 @@ const HomeScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           <View style={styles.iconContainer}>
-            <Ionicons name="happy-outline" size={60} color={colors.primary} />
+            <Image 
+              source={require('../data/logo/logo-dente.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
           
           <Text style={styles.title}>{appSettings.appTitle}</Text>
@@ -78,6 +81,10 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginBottom: 20,
+  },
+  logo: {
+    width: 100,
+    height: 100,
   },
   title: {
     fontSize: 24,

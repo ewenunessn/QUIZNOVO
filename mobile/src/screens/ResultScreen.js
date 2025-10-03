@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '../constants/colors';
 import { getAppSettings } from '../services/questionsService';
+import soundEffects from '../utils/soundEffects';
 
 const ResultScreen = ({ navigation, route }) => {
   const { score, totalQuestions = 10 } = route.params;
@@ -43,6 +44,9 @@ const ResultScreen = ({ navigation, route }) => {
   };
 
   const startAnimations = () => {
+    // Som de whoosh no início
+    soundEffects.playWhoosh();
+    
     Animated.sequence([
       // Ícone bounce
       Animated.spring(iconScale, {
@@ -100,7 +104,11 @@ const ResultScreen = ({ navigation, route }) => {
         })
       ]),
     ]).start(() => {
+      // Som de ding após título
+      soundEffects.playDing();
+      
       // Barra de progresso
+      soundEffects.playSweep();
       Animated.timing(progressWidth, {
         toValue: percentage,
         duration: 600,
@@ -110,6 +118,7 @@ const ResultScreen = ({ navigation, route }) => {
       
       // Prize
       setTimeout(() => {
+        soundEffects.playFanfare();
         Animated.parallel([
           Animated.timing(prizeOpacity, {
             toValue: 1,

@@ -180,8 +180,8 @@ const SettingsScreen = ({ navigation }) => {
             style={styles.logoutButton}
             onPress={() => {
               Alert.alert(
-                'Sair do Aplicativo',
-                'Tem certeza que deseja sair do aplicativo?',
+                'Sair',
+                'Tem certeza que deseja sair?',
                 [
                   {
                     text: 'Cancelar',
@@ -214,7 +214,7 @@ const SettingsScreen = ({ navigation }) => {
             }}
           >
             <Ionicons name="log-out-outline" size={20} color={colors.error} />
-            <Text style={styles.logoutText}>Sair do Aplicativo</Text>
+            <Text style={styles.logoutText}>Sair</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -14,7 +14,7 @@ const WelcomeScreen = ({ navigation }) => {
     appTitle: 'Odontologia Estética',
     appDescription: 'Descubra os bastidores da saúde e estética bucal'
   });
-  
+
   // Animações fluidas
   const iconScale = useRef(new Animated.Value(0)).current;
   const iconRotate = useRef(new Animated.Value(0)).current;
@@ -82,12 +82,12 @@ const WelcomeScreen = ({ navigation }) => {
       Alert.alert('Nome inválido', 'Por favor, digite um nome com pelo menos 2 caracteres.');
       return;
     }
-    
+
     try {
       await AsyncStorage.setItem('userName', userName.trim());
       setSavedName(userName.trim());
       setShowNameInput(false);
-      
+
       // Fade out do input e fade in do conteúdo principal
       Animated.timing(nameInputOpacity, {
         toValue: 0,
@@ -138,7 +138,7 @@ const WelcomeScreen = ({ navigation }) => {
           useNativeDriver: true,
         })
       ]),
-      
+
       // Título
       Animated.parallel([
         Animated.timing(titleOpacity, {
@@ -154,7 +154,7 @@ const WelcomeScreen = ({ navigation }) => {
           useNativeDriver: true,
         })
       ]),
-      
+
       // Subtítulo
       Animated.parallel([
         Animated.timing(subtitleOpacity, {
@@ -170,7 +170,7 @@ const WelcomeScreen = ({ navigation }) => {
           useNativeDriver: true,
         })
       ]),
-      
+
       // Botão
       Animated.parallel([
         Animated.timing(buttonOpacity, {
@@ -186,7 +186,7 @@ const WelcomeScreen = ({ navigation }) => {
           useNativeDriver: true,
         })
       ]),
-      
+
       // Logo da Estácio
       Animated.timing(logoOpacity, {
         toValue: 1,
@@ -208,7 +208,7 @@ const WelcomeScreen = ({ navigation }) => {
       {!showNameInput && savedName && (
         <View style={styles.topHeader}>
           <Text style={styles.topHeaderName}>Olá, {savedName}! 👋</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.settingsButton}
             onPress={() => navigation.navigate('Settings')}
           >
@@ -219,21 +219,21 @@ const WelcomeScreen = ({ navigation }) => {
 
       {/* Tela de entrada de nome */}
       {showNameInput && (
-        <Animated.View 
+        <Animated.View
           style={[
             styles.nameInputContainer,
             { opacity: nameInputOpacity }
           ]}
         >
           <Ionicons name="person-circle-outline" size={80} color={colors.secondary} />
-          
+
           <Text style={styles.nameInputTitle}>
             {savedName ? 'Editar Nome' : 'Bem-vindo!'}
           </Text>
           <Text style={styles.nameInputSubtitle}>
             {savedName ? 'Digite seu novo nome:' : 'Para começar, digite seu nome:'}
           </Text>
-          
+
           <TextInput
             style={styles.nameInput}
             placeholder="Seu nome"
@@ -245,8 +245,8 @@ const WelcomeScreen = ({ navigation }) => {
             returnKeyType="done"
             onSubmitEditing={saveName}
           />
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.saveButton}
             onPress={saveName}
           >
@@ -259,7 +259,7 @@ const WelcomeScreen = ({ navigation }) => {
       {/* Conteúdo principal */}
       {!showNameInput && (
         <View style={styles.contentContainer}>
-          <Animated.View 
+          <Animated.View
             style={[
               styles.iconContainer,
               {
@@ -270,10 +270,14 @@ const WelcomeScreen = ({ navigation }) => {
               }
             ]}
           >
-            <Ionicons name="happy-outline" size={120} color={colors.secondary} />
+            <Image
+              source={require('../data/logo/logo-dente.png')}
+              style={styles.welcomeLogo}
+              resizeMode="contain"
+            />
           </Animated.View>
-          
-          <Animated.Text 
+
+          <Animated.Text
             style={[
               styles.title,
               {
@@ -284,10 +288,10 @@ const WelcomeScreen = ({ navigation }) => {
           >
             {appSettings.appTitle}
           </Animated.Text>
-          
 
-          
-          <Animated.Text 
+
+
+          <Animated.Text
             style={[
               styles.subtitle,
               {
@@ -298,29 +302,29 @@ const WelcomeScreen = ({ navigation }) => {
           >
             {appSettings.appDescription}
           </Animated.Text>
-          
-          <Animated.View 
+
+          <Animated.View
             style={{
               opacity: buttonOpacity,
               transform: [{ scale: buttonScale }]
             }}
           >
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.button}
               onPress={() => navigation.navigate('Home')}
             >
               <Text style={styles.buttonText}>Entrar</Text>
             </TouchableOpacity>
           </Animated.View>
-          
+
           {/* Logo da Estácio no rodapé */}
-          <Animated.View 
+          <Animated.View
             style={[
               styles.logoContainer,
               { opacity: logoOpacity }
             ]}
           >
-            <Image 
+            <Image
               source={require('../data/logo/estacio-logo-1.png')}
               style={styles.logo}
               resizeMode="contain"
@@ -342,7 +346,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 20,
   },
   topHeaderName: {
@@ -369,6 +373,10 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginBottom: 40,
+  },
+  welcomeLogo: {
+    width: 150,
+    height: 150,
   },
   title: {
     fontSize: 32,
