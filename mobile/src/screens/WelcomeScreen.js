@@ -365,6 +365,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 30,
+    paddingBottom: 40,
   },
   iconContainer: {
     marginBottom: 40,
@@ -401,8 +402,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   logoContainer: {
-    position: 'absolute',
-    bottom: 80,
+    marginTop: 60,
     alignSelf: 'center',
   },
   logo: {
