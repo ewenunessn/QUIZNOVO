@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import { Platform } from 'react-native';
 
+import LoadingScreen from './src/screens/LoadingScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import InstructionsScreen from './src/screens/InstructionsScreen';
@@ -18,6 +19,8 @@ import AdminWebScreen from './src/screens/AdminWebScreen';
 const Stack = createStackNavigator();
 
 export default function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
   // Verificar se deve mostrar admin diretamente
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
     const path = window.location.pathname;
@@ -29,6 +32,16 @@ export default function App() {
         </>
       );
     }
+  }
+
+  // Mostrar loading inicial
+  if (isLoading) {
+    return (
+      <>
+        <StatusBar style="light" />
+        <LoadingScreen onLoadComplete={() => setIsLoading(false)} />
+      </>
+    );
   }
 
   return (

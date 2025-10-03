@@ -6,9 +6,8 @@ import { getAppSettings } from '../services/questionsService';
 const HomeScreen = ({ navigation }) => {
   const [appSettings, setAppSettings] = useState({
     appTitle: 'Quiz Odontologia Estética',
-    appLongDescription: 'Carregando...'
+    appLongDescription: 'Teste seus conhecimentos sobre odontologia estética e descubra os bastidores da saúde e estética bucal.'
   });
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadAppSettings();
@@ -16,14 +15,11 @@ const HomeScreen = ({ navigation }) => {
 
   const loadAppSettings = async () => {
     try {
-      setLoading(true);
       const settings = await getAppSettings();
       setAppSettings(settings);
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
       // Mantém os valores padrão se houver erro
-    } finally {
-      setLoading(false);
     }
   };
 
