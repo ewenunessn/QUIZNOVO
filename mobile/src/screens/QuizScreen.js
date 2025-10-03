@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 20,
     color: colors.primary,
-    textAlign: 'justify',
+    textAlign: 'center',
     lineHeight: 28,
     fontWeight: '500',
   },
