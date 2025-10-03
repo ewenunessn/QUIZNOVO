@@ -178,39 +178,39 @@ const SettingsScreen = ({ navigation }) => {
         <View style={styles.section}>
           <TouchableOpacity 
             style={styles.logoutButton}
-            onPress={() => {
-              Alert.alert(
-                'Sair',
-                'Tem certeza que deseja sair?',
-                [
-                  {
-                    text: 'Cancelar',
-                    style: 'cancel',
-                  },
-                  {
-                    text: 'Sair',
-                    style: 'destructive',
-                    onPress: async () => {
-                      try {
-                        await AsyncStorage.removeItem('userName');
-                        
-                        // Se estiver rodando na web (Expo Go web), recarrega a página
-                        if (Platform.OS === 'web') {
-                          window.location.reload();
-                        } else {
-                          // Se estiver no app nativo, usa navegação
-                          navigation.reset({
-                            index: 0,
-                            routes: [{ name: 'Welcome' }],
-                          });
-                        }
-                      } catch (error) {
-                        console.error('Erro ao sair:', error);
-                      }
-                    },
-                  },
-                ],
-              );
+            onPress={async () => {
+              // Usar window.confirm na web ao invés de Alert.alert
+              const confirmed = Platform.OS === 'web' 
+                ? window.confirm('Tem certeza que deseja sair?')
+                : await new Promise((resolve) => {
+                    Alert.alert(
+                      'Sair',
+                      'Tem certeza que deseja sair?',
+                      [
+                        { text: 'Cancelar', style: 'cancel', onPress: () => resolve(false) },
+                        { text: 'Sair', style: 'destructive', onPress: () => resolve(true) }
+                      ]
+                    );
+                  });
+
+              if (confirmed) {
+                try {
+                  await AsyncStorage.removeItem('userName');
+                  
+                  // Se estiver rodando na web (Expo Go web), recarrega a página
+                  if (Platform.OS === 'web') {
+                    window.location.reload();
+                  } else {
+                    // Se estiver no app nativo, usa navegação
+                    navigation.reset({
+                      index: 0,
+                      routes: [{ name: 'Welcome' }],
+                    });
+                  }
+                } catch (error) {
+                  console.error('Erro ao sair:', error);
+                }
+              }
             }}
           >
             <Ionicons name="log-out-outline" size={20} color={colors.error} />
