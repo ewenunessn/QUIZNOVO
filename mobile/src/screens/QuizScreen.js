@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing, Alert, BackHandler } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing, Alert, BackHandler, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../constants/colors';
-import { questions } from '../data/questions';
+import { getQuestions } from '../services/questionsService';
 
 const QuizScreen = ({ navigation }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [showExplanation, setShowExplanation] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Animações apenas com opacity - zero artefatos
   const progressWidth = useRef(new Animated.Value(0)).current;
@@ -17,6 +19,29 @@ const QuizScreen = ({ navigation }) => {
   const questionOpacity = useRef(new Animated.Value(1)).current;
   const buttonsOpacity = useRef(new Animated.Value(1)).current;
   const explanationOpacity = useRef(new Animated.Value(0)).current;
+
+  // Carregar perguntas do Firebase
+  useEffect(() => {
+    loadQuestions();
+  }, []);
+
+  const loadQuestions = async () => {
+    try {
+      setLoading(true);
+      const questionsData = await getQuestions();
+      if (questionsData.length > 0) {
+        setQuestions(questionsData);
+      } else {
+        Alert.alert('Erro', 'Nenhuma pergunta encontrada. Verifique sua conexão.');
+        navigation.goBack();
+      }
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível carregar as perguntas: ' + error.message);
+      navigation.goBack();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAnswer = (answer) => {
     const correct = answer === questions[currentQuestion].resposta;
@@ -129,7 +154,7 @@ const QuizScreen = ({ navigation }) => {
     }
   };
 
-  const progress = ((currentQuestion + 1) / questions.length) * 100;
+  const progress = questions.length > 0 ? ((currentQuestion + 1) / questions.length) * 100 : 0;
 
   // Animar barra de progresso
   useEffect(() => {
@@ -158,7 +183,22 @@ const QuizScreen = ({ navigation }) => {
         useNativeDriver: true,
       }).start();
     }, 300);
-  }, []);
+  }, [questions.length]);
+
+  // Loading screen
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.loadingText}>Carregando perguntas...</Text>
+      </View>
+    );
+  }
+
+  // Se não há perguntas, não renderiza nada
+  if (questions.length === 0) {
+    return null;
+  }
 
   // Intercepta o botão de voltar do Android
   useFocusEffect(
@@ -178,13 +218,13 @@ const QuizScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Header com barra de progresso moderna */}
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={confirmExit}
         >
           <Ionicons name="arrow-back" size={24} color={colors.primary} />
         </TouchableOpacity>
-        
+
         <View style={styles.progressSection}>
           <Text style={styles.questionNumber}>
             {String(currentQuestion + 1).padStart(2, '0')}
@@ -510,6 +550,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginRight: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.secondary,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: colors.primary,
   },
 });
 
