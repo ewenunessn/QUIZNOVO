@@ -2,5 +2,15 @@
   "buildCommand": "cd mobile && npm install && npx expo export --platform web",
   "outputDirectory": "mobile/dist",
   "installCommand": "echo 'Skipping root install'",
-  "framework": null
+  "framework": null,
+  "routes": [
+    {
+      "src": "/admin",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
 }
