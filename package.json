@@ -1,14 +1,14 @@
 {
-  "name": "quiz-odontologia-estetica",
+  "name": "quiz-odontologia-estetica-expo",
   "version": "1.0.0",
-  "description": "Quiz sobre Odontologia Estética - Versão Web",
+  "description": "Quiz sobre Odontologia Estética - Versão Web Expo",
   "main": "index.js",
   "scripts": {
-    "build": "cd web && npm install && npm run build",
-    "start": "cd web && npm start",
+    "build": "cd mobile && npm install && npx expo export --platform web",
+    "start": "cd mobile && npx expo start --web",
     "deploy": "vercel --prod"
   },
-  "keywords": ["quiz", "odontologia", "educacao", "react"],
+  "keywords": ["quiz", "odontologia", "educacao", "react", "expo"],
   "author": "Ewerton",
   "license": "MIT",
   "engines": {

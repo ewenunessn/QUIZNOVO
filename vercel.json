@@ -1,22 +1,22 @@
 {
   "version": 2,
-  "name": "quiz-odontologia-estetica",
+  "name": "quiz-odontologia-estetica-expo",
   "builds": [
     {
-      "src": "web/package.json",
+      "src": "mobile/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "build"
+        "distDir": "dist"
       }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/web/$1"
+      "dest": "/mobile/dist/$1"
     }
   ],
-  "buildCommand": "cd web && npm run build",
-  "outputDirectory": "web/build",
-  "installCommand": "cd web && npm install"
+  "buildCommand": "cd mobile && npm install && npx expo export --platform web",
+  "outputDirectory": "mobile/dist",
+  "installCommand": "cd mobile && npm install"
 }
