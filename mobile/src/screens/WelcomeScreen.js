@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../constants/colors';
 import { getAppSettings } from '../services/questionsService';
+import { normalize, moderateScale } from '../utils/responsive';
 
 const WelcomeScreen = ({ navigation }) => {
   const [showNameInput, setShowNameInput] = useState(false);
@@ -35,7 +36,9 @@ const WelcomeScreen = ({ navigation }) => {
   const loadAppSettings = async () => {
     try {
       const settings = await getAppSettings();
-      setAppSettings(settings);
+      if (settings) {
+        setAppSettings(settings);
+      }
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
       // Mantém as configurações padrão se houver erro
@@ -289,8 +292,6 @@ const WelcomeScreen = ({ navigation }) => {
             {appSettings.appTitle}
           </Animated.Text>
 
-
-
           <Animated.Text
             style={[
               styles.subtitle,
@@ -350,14 +351,14 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   topHeaderName: {
-    fontSize: 18,
+    fontSize: normalize(18),
     color: colors.secondary,
     fontWeight: '600',
   },
   settingsButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: moderateScale(44),
+    height: moderateScale(44),
+    borderRadius: moderateScale(22),
     backgroundColor: 'rgba(178, 210, 209, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -368,35 +369,35 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 30,
-    paddingBottom: 40,
+    paddingHorizontal: moderateScale(30),
+    paddingBottom: moderateScale(40),
   },
   iconContainer: {
-    marginBottom: 40,
+    marginBottom: moderateScale(40),
   },
   welcomeLogo: {
-    width: 150,
-    height: 150,
+    width: moderateScale(150),
+    height: moderateScale(150),
   },
   title: {
-    fontSize: 32,
+    fontSize: normalize(32),
     fontWeight: 'bold',
     color: colors.white,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: moderateScale(20),
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: normalize(18),
     color: colors.secondary,
     textAlign: 'center',
-    marginBottom: 60,
-    lineHeight: 24,
+    marginBottom: moderateScale(60),
+    lineHeight: normalize(24),
   },
   button: {
     backgroundColor: colors.secondary,
-    paddingHorizontal: 50,
-    paddingVertical: 15,
-    borderRadius: 25,
+    paddingHorizontal: moderateScale(50),
+    paddingVertical: moderateScale(15),
+    borderRadius: moderateScale(25),
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -405,48 +406,48 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.primary,
-    fontSize: 18,
+    fontSize: normalize(18),
     fontWeight: 'bold',
     textAlign: 'center',
   },
   logoContainer: {
-    marginTop: 60,
+    marginTop: moderateScale(60),
     alignSelf: 'center',
   },
   logo: {
-    width: 120,
-    height: 40,
+    width: moderateScale(120),
+    height: moderateScale(40),
   },
   nameInputContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 30,
+    paddingHorizontal: moderateScale(30),
   },
   nameInputTitle: {
-    fontSize: 28,
+    fontSize: normalize(28),
     fontWeight: 'bold',
     color: colors.white,
     textAlign: 'center',
-    marginTop: 20,
-    marginBottom: 10,
+    marginTop: moderateScale(20),
+    marginBottom: moderateScale(10),
   },
   nameInputSubtitle: {
-    fontSize: 16,
+    fontSize: normalize(16),
     color: colors.secondary,
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: moderateScale(40),
   },
   nameInput: {
     width: '100%',
     backgroundColor: colors.white,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderRadius: 25,
-    fontSize: 16,
+    paddingHorizontal: moderateScale(20),
+    paddingVertical: moderateScale(15),
+    borderRadius: moderateScale(25),
+    fontSize: normalize(16),
     color: colors.primary,
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: moderateScale(30),
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -457,9 +458,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondary,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 25,
+    paddingHorizontal: moderateScale(30),
+    paddingVertical: moderateScale(15),
+    borderRadius: moderateScale(25),
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -468,9 +469,9 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: colors.primary,
-    fontSize: 18,
+    fontSize: normalize(18),
     fontWeight: 'bold',
-    marginRight: 10,
+    marginRight: moderateScale(10),
   },
 
 });

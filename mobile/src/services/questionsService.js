@@ -104,6 +104,14 @@ export const deleteQuestion = async (firebaseId) => {
   }
 };
 
+// Configurações padrão
+const DEFAULT_SETTINGS = {
+  appDescription: "Descubra os bastidores da saúde e estética bucal",
+  appTitle: "Odontologia Estética",
+  appLongDescription: "Este jogo foi criado para transmitir informações sobre os bastidores da odontologia estética — saúde e estética bucal — aspectos que nem sempre aparecem nas redes sociais, mas que são discutidos em consultas e baseados em conhecimentos técnicos. Com perguntas de verdadeiro ou falso, você aprenderá a diferenciar expectativas irreais de práticas seguras, adquirindo conhecimento que ajuda a cuidar do sorriso de forma consciente e saudável.",
+  prizeMessage: "Procure nossa equipe para retirar seu presente especial por ter participado do quiz."
+};
+
 // Buscar configurações do app (descrição, etc.)
 export const getAppSettings = async () => {
   try {
@@ -114,21 +122,21 @@ export const getAppSettings = async () => {
     if (docSnap.exists()) {
       const data = docSnap.data();
       console.log('Configurações encontradas no Firebase:', data);
-      return data;
+      // Garantir que todos os campos existam, usando valores padrão como fallback
+      return {
+        ...DEFAULT_SETTINGS,
+        ...data
+      };
     } else {
       console.log('Documento de configurações não existe, retornando padrão');
-      const defaultSettings = {
-        appDescription: "Descubra os bastidores da saúde e estética bucal",
-        appTitle: "Odontologia Estética",
-        appLongDescription: "Este jogo foi criado para transmitir informações sobre os bastidores da odontologia estética — saúde e estética bucal — aspectos que nem sempre aparecem nas redes sociais, mas que são discutidos em consultas e baseados em conhecimentos técnicos. Com perguntas de verdadeiro ou falso, você aprenderá a diferenciar expectativas irreais de práticas seguras, adquirindo conhecimento que ajuda a cuidar do sorriso de forma consciente e saudável.",
-        prizeMessage: "Procure nossa equipe para retirar seu presente especial por ter participado do quiz."
-      };
-      return defaultSettings;
+      return DEFAULT_SETTINGS;
     }
   } catch (error) {
     console.error('Erro ao buscar configurações:', error);
     console.error('Detalhes do erro:', error.code, error.message);
-    throw error;
+    // Em caso de erro, retornar configurações padrão ao invés de lançar erro
+    console.log('Retornando configurações padrão devido ao erro');
+    return DEFAULT_SETTINGS;
   }
 };
 
@@ -255,12 +263,7 @@ export const initializeDefaultData = async () => {
       
       if (!docSnap.exists()) {
         // Só inicializar configurações padrão se não existirem
-        await updateAppSettings({
-          appDescription: "Descubra os bastidores da saúde e estética bucal",
-          appTitle: "Odontologia Estética",
-          appLongDescription: "Este jogo foi criado para transmitir informações sobre os bastidores da odontologia estética — saúde e estética bucal — aspectos que nem sempre aparecem nas redes sociais, mas que são discutidos em consultas e baseados em conhecimentos técnicos. Com perguntas de verdadeiro ou falso, você aprenderá a diferenciar expectativas irreais de práticas seguras, adquirindo conhecimento que ajuda a cuidar do sorriso de forma consciente e saudável.",
-          prizeMessage: "Procure nossa equipe para retirar seu presente especial por ter participado do quiz."
-        });
+        await updateAppSettings(DEFAULT_SETTINGS);
         console.log('Configurações padrão inicializadas');
       } else {
         console.log('Configurações já existem, mantendo valores atuais');

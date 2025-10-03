@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Animated, Easing } from 'react-native';
 import { colors } from '../constants/colors';
 import { getAppSettings } from '../services/questionsService';
+import { normalize, moderateScale } from '../utils/responsive';
 
 const HomeScreen = ({ navigation }) => {
   const [appSettings, setAppSettings] = useState({
@@ -9,14 +10,92 @@ const HomeScreen = ({ navigation }) => {
     appLongDescription: 'Teste seus conhecimentos sobre odontologia estética e descubra os bastidores da saúde e estética bucal.'
   });
 
+  // Animações
+  const logoScale = useRef(new Animated.Value(0)).current;
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const titleOpacity = useRef(new Animated.Value(0)).current;
+  const titleTranslateY = useRef(new Animated.Value(20)).current;
+  const descriptionOpacity = useRef(new Animated.Value(0)).current;
+  const descriptionTranslateY = useRef(new Animated.Value(20)).current;
+  const buttonOpacity = useRef(new Animated.Value(0)).current;
+  const buttonScale = useRef(new Animated.Value(0.8)).current;
+
   useEffect(() => {
     loadAppSettings();
+    startAnimations();
   }, []);
+
+  const startAnimations = () => {
+    Animated.sequence([
+      // Logo com bounce
+      Animated.parallel([
+        Animated.spring(logoScale, {
+          toValue: 1,
+          tension: 80,
+          friction: 6,
+          useNativeDriver: true,
+        }),
+        Animated.timing(logoOpacity, {
+          toValue: 1,
+          duration: 400,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        })
+      ]),
+      // Título
+      Animated.parallel([
+        Animated.timing(titleOpacity, {
+          toValue: 1,
+          duration: 500,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.spring(titleTranslateY, {
+          toValue: 0,
+          tension: 80,
+          friction: 8,
+          useNativeDriver: true,
+        })
+      ]),
+      // Descrição (mais suave e lenta)
+      Animated.parallel([
+        Animated.timing(descriptionOpacity, {
+          toValue: 1,
+          duration: 700,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.spring(descriptionTranslateY, {
+          toValue: 0,
+          tension: 60,
+          friction: 10,
+          useNativeDriver: true,
+        })
+      ]),
+      // Botão
+      Animated.parallel([
+        Animated.timing(buttonOpacity, {
+          toValue: 1,
+          duration: 500,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.spring(buttonScale, {
+          toValue: 1,
+          tension: 80,
+          friction: 8,
+          useNativeDriver: true,
+        })
+      ])
+    ]).start();
+  };
 
   const loadAppSettings = async () => {
     try {
       const settings = await getAppSettings();
-      setAppSettings(settings);
+      if (settings) {
+        setAppSettings(settings);
+      }
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
       // Mantém os valores padrão se houver erro
@@ -27,26 +106,59 @@ const HomeScreen = ({ navigation }) => {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
-          <View style={styles.iconContainer}>
+          <Animated.View 
+            style={[
+              styles.iconContainer,
+              {
+                opacity: logoOpacity,
+                transform: [{ scale: logoScale }]
+              }
+            ]}
+          >
             <Image 
               source={require('../data/logo/logo-dente.png')} 
               style={styles.logo}
               resizeMode="contain"
             />
-          </View>
+          </Animated.View>
           
-          <Text style={styles.title}>{appSettings.appTitle}</Text>
-          
-          <Text style={styles.description}>
-            {appSettings.appLongDescription}
-          </Text>
-          
-          <TouchableOpacity 
-            style={styles.button}
-            onPress={() => navigation.navigate('Instructions')}
+          <Animated.Text 
+            style={[
+              styles.title,
+              {
+                opacity: titleOpacity,
+                transform: [{ translateY: titleTranslateY }]
+              }
+            ]}
           >
-            <Text style={styles.buttonText}>Iniciar Quiz</Text>
-          </TouchableOpacity>
+            {appSettings.appTitle}
+          </Animated.Text>
+          
+          <Animated.Text 
+            style={[
+              styles.description,
+              {
+                opacity: descriptionOpacity,
+                transform: [{ translateY: descriptionTranslateY }]
+              }
+            ]}
+          >
+            {appSettings.appLongDescription}
+          </Animated.Text>
+          
+          <Animated.View
+            style={{
+              opacity: buttonOpacity,
+              transform: [{ scale: buttonScale }]
+            }}
+          >
+            <TouchableOpacity 
+              style={styles.button}
+              onPress={() => navigation.navigate('Instructions')}
+            >
+              <Text style={styles.buttonText}>Iniciar Quiz</Text>
+            </TouchableOpacity>
+          </Animated.View>
         </View>
       </ScrollView>
     </View>
@@ -66,8 +178,8 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 20,
-    padding: 30,
+    borderRadius: moderateScale(20),
+    padding: moderateScale(30),
     alignItems: 'center',
     elevation: 5,
     shadowColor: '#000',
@@ -76,31 +188,31 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   iconContainer: {
-    marginBottom: 20,
+    marginBottom: moderateScale(20),
   },
   logo: {
-    width: 100,
-    height: 100,
+    width: moderateScale(100),
+    height: moderateScale(100),
   },
   title: {
-    fontSize: 24,
+    fontSize: normalize(24),
     fontWeight: 'bold',
     color: colors.primary,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: moderateScale(20),
   },
   description: {
-    fontSize: 16,
+    fontSize: normalize(16),
     color: colors.gray,
     textAlign: 'justify',
-    lineHeight: 22,
-    marginBottom: 30,
+    lineHeight: normalize(22),
+    marginBottom: moderateScale(30),
   },
   button: {
     backgroundColor: colors.primary,
-    paddingHorizontal: 40,
-    paddingVertical: 15,
-    borderRadius: 25,
+    paddingHorizontal: moderateScale(40),
+    paddingVertical: moderateScale(15),
+    borderRadius: moderateScale(25),
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -109,7 +221,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.white,
-    fontSize: 18,
+    fontSize: normalize(18),
     fontWeight: 'bold',
     textAlign: 'center',
   },

@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../constants/colors';
 import { getQuestions } from '../services/questionsService';
 import soundEffects from '../utils/soundEffects';
+import { normalize, moderateScale } from '../utils/responsive';
 
 const QuizScreen = ({ navigation }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -13,6 +14,9 @@ const QuizScreen = ({ navigation }) => {
   const [isCorrect, setIsCorrect] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // ✅ Ref para garantir valor correto do score (evita race condition)
+  const scoreRef = useRef(0);
 
   // Animações apenas com opacity - zero artefatos
   const progressWidth = useRef(new Animated.Value(0)).current;
@@ -25,6 +29,11 @@ const QuizScreen = ({ navigation }) => {
   useEffect(() => {
     loadQuestions();
   }, []);
+
+  // ✅ Sincronizar scoreRef com score inicial
+  useEffect(() => {
+    scoreRef.current = score;
+  }, [score]);
 
   const loadQuestions = async () => {
     try {
@@ -51,6 +60,28 @@ const QuizScreen = ({ navigation }) => {
     // Reproduz som de acordo com a resposta
     if (correct) {
       soundEffects.playCorrect();
+      
+      // ✅ Atualizar ref imediatamente (síncrono)
+      scoreRef.current += 1;
+      
+      // ✅ Atualizar state para UI
+      setScore(scoreRef.current);
+      
+      // Animação no score
+      Animated.sequence([
+        Animated.spring(scoreScale, {
+          toValue: 1.2,
+          tension: 200,
+          friction: 4,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scoreScale, {
+          toValue: 1,
+          tension: 200,
+          friction: 8,
+          useNativeDriver: true,
+        })
+      ]).start();
     } else {
       soundEffects.playIncorrect();
     }
@@ -72,25 +103,6 @@ const QuizScreen = ({ navigation }) => {
         useNativeDriver: true,
       }).start();
     });
-
-    if (correct) {
-      setScore(score + 1);
-      // Animação no score
-      Animated.sequence([
-        Animated.spring(scoreScale, {
-          toValue: 1.2,
-          tension: 200,
-          friction: 4,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scoreScale, {
-          toValue: 1,
-          tension: 200,
-          friction: 8,
-          useNativeDriver: true,
-        })
-      ]).start();
-    }
   };
 
 
@@ -98,7 +110,7 @@ const QuizScreen = ({ navigation }) => {
   const confirmExit = () => {
     if (Platform.OS === 'web') {
       if (window.confirm('Você perderá todo o progresso atual. Tem certeza que deseja sair?')) {
-        navigation.goBack();
+        navigation.navigate('Welcome');
       }
     } else {
       Alert.alert(
@@ -112,7 +124,7 @@ const QuizScreen = ({ navigation }) => {
           {
             text: 'Sair',
             style: 'destructive',
-            onPress: () => navigation.goBack(),
+            onPress: () => navigation.navigate('Welcome'),
           },
         ],
         { cancelable: true }
@@ -164,8 +176,9 @@ const QuizScreen = ({ navigation }) => {
         }, 200);
       });
     } else {
+      // ✅ Usar scoreRef para garantir valor correto (evita race condition)
       navigation.navigate('Result', { 
-        score: score + (isCorrect ? 1 : 0),
+        score: scoreRef.current,
         totalQuestions: questions.length 
       });
     }
@@ -404,10 +417,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   questionNumber: {
-    fontSize: 24,
+    fontSize: normalize(24),
     fontWeight: 'bold',
     color: colors.primary,
-    marginRight: 12,
+    marginRight: moderateScale(12),
   },
   progressContainer: {
     flex: 1,
@@ -416,57 +429,57 @@ const styles = StyleSheet.create({
   },
   progressTrack: {
     flex: 1,
-    height: 8,
+    height: moderateScale(8),
     backgroundColor: 'rgba(3, 56, 96, 0.2)',
-    borderRadius: 4,
+    borderRadius: moderateScale(4),
     overflow: 'hidden',
-    marginRight: 8,
+    marginRight: moderateScale(8),
   },
   progressFill: {
     height: '100%',
     backgroundColor: colors.primary,
-    borderRadius: 4,
+    borderRadius: moderateScale(4),
   },
   totalQuestions: {
-    fontSize: 16,
+    fontSize: normalize(16),
     color: colors.primary,
     fontWeight: '600',
   },
   scoreContainer: {
-    marginLeft: 16,
+    marginLeft: moderateScale(16),
   },
   scoreBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.white,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: moderateScale(12),
+    paddingVertical: moderateScale(6),
+    borderRadius: moderateScale(20),
   },
   scoreText: {
-    fontSize: 16,
+    fontSize: normalize(16),
     fontWeight: 'bold',
     color: colors.primary,
-    marginLeft: 4,
+    marginLeft: moderateScale(4),
   },
   questionCard: {
     backgroundColor: colors.white,
-    marginHorizontal: 20,
-    padding: 20,
-    paddingTop: 36,
-    borderRadius: 20,
-    marginBottom: 20,
+    marginHorizontal: moderateScale(20),
+    padding: moderateScale(20),
+    paddingTop: moderateScale(36),
+    borderRadius: moderateScale(20),
+    marginBottom: moderateScale(20),
     position: 'relative',
     flex: 1,
     maxHeight: '35%',
   },
   iconCircle: {
     position: 'absolute',
-    top: -20,
+    top: moderateScale(-20),
     alignSelf: 'center',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: moderateScale(40),
+    height: moderateScale(40),
+    borderRadius: moderateScale(20),
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -477,10 +490,10 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   questionText: {
-    fontSize: 18,
+    fontSize: normalize(18),
     color: colors.primary,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: normalize(24),
     fontWeight: '500',
   },
   answersContainer: {
@@ -491,10 +504,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-    marginBottom: 12,
+    paddingVertical: moderateScale(16),
+    paddingHorizontal: moderateScale(20),
+    borderRadius: moderateScale(16),
+    marginBottom: moderateScale(12),
     width: '100%',
   },
   trueButton: {
@@ -505,21 +518,21 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   answerLetter: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: moderateScale(32),
+    height: moderateScale(32),
+    borderRadius: moderateScale(16),
     backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: moderateScale(16),
   },
   answerLetterText: {
-    fontSize: 16,
+    fontSize: normalize(16),
     fontWeight: 'bold',
     color: colors.primary,
   },
   answerText: {
-    fontSize: 18,
+    fontSize: normalize(18),
     color: colors.white,
     fontWeight: '500',
   },
@@ -532,47 +545,47 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    marginBottom: 16,
+    paddingVertical: moderateScale(12),
+    borderRadius: moderateScale(12),
+    marginBottom: moderateScale(16),
   },
   resultText: {
     color: colors.white,
-    fontSize: 18,
+    fontSize: normalize(18),
     fontWeight: 'bold',
-    marginLeft: 8,
+    marginLeft: moderateScale(8),
   },
   explanationCard: {
     backgroundColor: colors.white,
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 16,
+    padding: moderateScale(20),
+    borderRadius: moderateScale(16),
+    marginBottom: moderateScale(16),
     flex: 1,
   },
   correctAnswerLabel: {
-    fontSize: 15,
+    fontSize: normalize(15),
     fontWeight: 'bold',
     color: colors.primary,
-    marginBottom: 8,
+    marginBottom: moderateScale(8),
   },
   explanationText: {
-    fontSize: 15,
+    fontSize: normalize(15),
     color: colors.gray,
-    lineHeight: 22,
+    lineHeight: normalize(22),
   },
   nextButton: {
     backgroundColor: colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 16,
+    paddingVertical: moderateScale(14),
+    borderRadius: moderateScale(16),
   },
   nextButtonText: {
     color: colors.white,
-    fontSize: 18,
+    fontSize: normalize(18),
     fontWeight: 'bold',
-    marginRight: 8,
+    marginRight: moderateScale(8),
   },
   loadingContainer: {
     flex: 1,
@@ -581,8 +594,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondary,
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
+    marginTop: moderateScale(16),
+    fontSize: normalize(16),
     color: colors.primary,
   },
 });

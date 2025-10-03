@@ -5,10 +5,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '../constants/colors';
 import { getAppSettings } from '../services/questionsService';
 import soundEffects from '../utils/soundEffects';
+import { normalize, moderateScale } from '../utils/responsive';
 
 const ResultScreen = ({ navigation, route }) => {
   const { score, totalQuestions = 10 } = route.params;
-  const percentage = Math.round((score / totalQuestions) * 100);
+  
+  // Validar e garantir que os valores são consistentes
+  const validScore = Math.min(Math.max(0, score), totalQuestions); // Entre 0 e totalQuestions
+  const validTotal = Math.max(1, totalQuestions); // Mínimo 1 para evitar divisão por zero
+  const percentage = Math.min(100, Math.round((validScore / validTotal) * 100)); // Máximo 100%
+  
   const [prizeMessage, setPrizeMessage] = useState('Procure nossa equipe para retirar seu presente especial por ter participado do quiz.');
 
   // Animações fluidas
@@ -158,8 +164,8 @@ const ResultScreen = ({ navigation, route }) => {
   const saveResult = async () => {
     try {
       const result = {
-        score,
-        totalQuestions,
+        score: validScore,
+        totalQuestions: validTotal,
         percentage,
         date: new Date().toISOString(),
       };
@@ -237,7 +243,7 @@ const ResultScreen = ({ navigation, route }) => {
         ]}
       >
         <Text style={styles.scoreText}>
-          Você acertou {score} de {totalQuestions} questões
+          Você acertou {validScore} de {validTotal} questões
         </Text>
         
         <View style={styles.progressContainer}>
@@ -304,62 +310,62 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   iconContainer: {
-    marginBottom: 20,
+    marginBottom: moderateScale(20),
   },
   title: {
-    fontSize: 32,
+    fontSize: normalize(32),
     fontWeight: 'bold',
     color: colors.white,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: moderateScale(8),
   },
   performanceText: {
-    fontSize: 18,
+    fontSize: normalize(18),
     color: colors.secondary,
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: moderateScale(30),
   },
   scoreContainer: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: moderateScale(30),
   },
   scoreText: {
-    fontSize: 16,
+    fontSize: normalize(16),
     color: colors.white,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: moderateScale(16),
   },
   progressContainer: {
     width: '100%',
-    maxWidth: 250,
+    maxWidth: moderateScale(250),
     alignItems: 'center',
   },
   progressBar: {
     width: '100%',
-    height: 10,
+    height: moderateScale(10),
     backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 5,
+    borderRadius: moderateScale(5),
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: moderateScale(8),
   },
   progressFill: {
     height: '100%',
     backgroundColor: colors.secondary,
-    borderRadius: 5,
+    borderRadius: moderateScale(5),
   },
   percentageText: {
-    fontSize: 22,
+    fontSize: normalize(22),
     fontWeight: 'bold',
     color: colors.secondary,
   },
   prizeContainer: {
-    marginBottom: 30,
+    marginBottom: moderateScale(30),
     width: '100%',
   },
   prizeCard: {
     backgroundColor: colors.white,
-    padding: 20,
-    borderRadius: 16,
+    padding: moderateScale(20),
+    borderRadius: moderateScale(16),
     alignItems: 'center',
     elevation: 5,
     shadowColor: '#000',
@@ -368,25 +374,25 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   prizeTitle: {
-    fontSize: 16,
+    fontSize: normalize(16),
     fontWeight: 'bold',
     color: colors.primary,
     textAlign: 'center',
-    marginVertical: 12,
+    marginVertical: moderateScale(12),
   },
   prizeText: {
-    fontSize: 13,
+    fontSize: normalize(13),
     color: colors.gray,
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: normalize(18),
   },
   button: {
     backgroundColor: colors.secondary,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 20,
+    paddingHorizontal: moderateScale(24),
+    paddingVertical: moderateScale(12),
+    borderRadius: moderateScale(20),
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -395,9 +401,9 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.primary,
-    fontSize: 16,
+    fontSize: normalize(16),
     fontWeight: 'bold',
-    marginLeft: 8,
+    marginLeft: moderateScale(8),
   },
 });
 

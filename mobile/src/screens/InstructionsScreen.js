@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../constants/colors';
+import { normalize, moderateScale } from '../utils/responsive';
 
 const InstructionsScreen = ({ navigation }) => {
   const instructions = [
@@ -54,8 +55,8 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 20,
-    padding: 30,
+    borderRadius: moderateScale(20),
+    padding: moderateScale(30),
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -63,45 +64,45 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   title: {
-    fontSize: 28,
+    fontSize: normalize(28),
     fontWeight: 'bold',
     color: colors.primary,
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: moderateScale(30),
   },
   instructionsList: {
-    marginBottom: 40,
+    marginBottom: moderateScale(40),
   },
   instructionItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 20,
+    marginBottom: moderateScale(20),
   },
   numberContainer: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: moderateScale(30),
+    height: moderateScale(30),
+    borderRadius: moderateScale(15),
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: moderateScale(15),
   },
   number: {
     color: colors.white,
-    fontSize: 16,
+    fontSize: normalize(16),
     fontWeight: 'bold',
   },
   instructionText: {
     flex: 1,
-    fontSize: 16,
+    fontSize: normalize(16),
     color: colors.gray,
-    lineHeight: 22,
+    lineHeight: normalize(22),
   },
   button: {
     backgroundColor: colors.primary,
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 25,
+    paddingHorizontal: moderateScale(30),
+    paddingVertical: moderateScale(15),
+    borderRadius: moderateScale(25),
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -113,11 +114,11 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.white,
-    fontSize: 18,
+    fontSize: normalize(18),
     fontWeight: 'bold',
   },
   buttonIcon: {
-    marginLeft: 10,
+    marginLeft: moderateScale(10),
   },
 });
 
