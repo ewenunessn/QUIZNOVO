@@ -1,7 +1,14 @@
 {
-  "buildCommand": "cd mobile && npm install && npm run vercel-build",
-  "outputDirectory": "mobile/dist",
-  "framework": null,
+  "version": 2,
+  "builds": [
+    {
+      "src": "mobile/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
   "routes": [
     {
       "src": "/_expo/(.*)",
