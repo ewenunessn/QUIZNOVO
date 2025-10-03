@@ -1,37 +1,18 @@
 {
-  "name": "quiz-odonto-mobile",
+  "name": "quiz-odontologia-estetica-expo",
   "version": "1.0.0",
-  "main": "node_modules/expo/AppEntry.js",
+  "description": "Quiz sobre Odontologia Estética - Versão Web Expo",
+  "main": "index.js",
   "scripts": {
-    "start": "set REACT_NATIVE_PACKAGER_HOSTNAME=192.168.18.12 && expo start --lan",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "build": "npx expo export --platform web",
-    "vercel-build": "npx expo export --platform web"
+    "build": "cd mobile && npm install && npx expo export --platform web",
+    "start": "cd mobile && npx expo start --web",
+    "deploy": "vercel --prod"
   },
-  "dependencies": {
-    "@expo/vector-icons": "^15.0.2",
-    "@react-native-async-storage/async-storage": "2.2.0",
-    "@react-navigation/native": "^6.1.18",
-    "@react-navigation/stack": "^6.4.1",
-    "expo": "~54.0.0",
-    "expo-constants": "^18.0.9",
-    "expo-status-bar": "~3.0.8",
-    "firebase": "^12.3.0",
-    "nativewind": "^4.2.1",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-native": "0.81.4",
-    "react-native-gesture-handler": "~2.28.0",
-    "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0",
-    "react-native-web": "^0.21.0",
-    "tailwindcss": "^3.4.18"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.20.0",
-    "babel-preset-expo": "^54.0.3"
-  },
-  "private": true
+  "keywords": ["quiz", "odontologia", "educacao", "react", "expo"],
+  "author": "Ewerton",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
 }
