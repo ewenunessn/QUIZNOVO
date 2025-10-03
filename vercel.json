@@ -1,6 +1,21 @@
 {
-  "buildCommand": "cd mobile && npm install && npm run build",
-  "outputDirectory": "mobile/dist",
-  "installCommand": "echo 'Skipping install'",
-  "framework": null
+  "version": 2,
+  "builds": [
+    {
+      "src": "mobile/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
 }
