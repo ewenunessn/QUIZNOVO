@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing, Alert, BackHandler, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing, Alert, BackHandler, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../constants/colors';
 import { getQuestions } from '../services/questionsService';
+import soundEffects from '../utils/soundEffects';
 
 const QuizScreen = ({ navigation }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -47,6 +48,13 @@ const QuizScreen = ({ navigation }) => {
     const correct = answer === questions[currentQuestion].resposta;
     setIsCorrect(correct);
 
+    // Reproduz som de acordo com a resposta
+    if (correct) {
+      soundEffects.playCorrect();
+    } else {
+      soundEffects.playIncorrect();
+    }
+
     // Fade out dos botões
     Animated.timing(buttonsOpacity, {
       toValue: 0,
@@ -88,22 +96,28 @@ const QuizScreen = ({ navigation }) => {
 
 
   const confirmExit = () => {
-    Alert.alert(
-      'Sair do Quiz?',
-      'Você perderá todo o progresso atual. Tem certeza que deseja sair?',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: () => navigation.goBack(),
-        },
-      ],
-      { cancelable: true }
-    );
+    if (Platform.OS === 'web') {
+      if (window.confirm('Você perderá todo o progresso atual. Tem certeza que deseja sair?')) {
+        navigation.goBack();
+      }
+    } else {
+      Alert.alert(
+        'Sair do Quiz?',
+        'Você perderá todo o progresso atual. Tem certeza que deseja sair?',
+        [
+          {
+            text: 'Cancelar',
+            style: 'cancel',
+          },
+          {
+            text: 'Sair',
+            style: 'destructive',
+            onPress: () => navigation.goBack(),
+          },
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   const nextQuestion = () => {
@@ -191,14 +205,16 @@ const QuizScreen = ({ navigation }) => {
   // Intercepta o botão de voltar do Android
   useFocusEffect(
     React.useCallback(() => {
-      const onBackPress = () => {
-        confirmExit();
-        return true; // Impede o comportamento padrão
-      };
+      if (Platform.OS === 'android') {
+        const onBackPress = () => {
+          confirmExit();
+          return true; // Impede o comportamento padrão
+        };
 
-      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+        const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
-      return () => subscription?.remove();
+        return () => subscription?.remove();
+      }
     }, [])
   );
 
