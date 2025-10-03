@@ -16,9 +16,21 @@ const AdminSettingsScreen = ({ navigation, route }) => {
   const { settings } = route.params || {};
 
   const [formData, setFormData] = useState({
-    appTitle: settings?.appTitle || 'Odontologia Estética',
-    appDescription: settings?.appDescription || 'Descubra os bastidores da saúde e estética bucal'
+    appTitle: '',
+    appDescription: '',
+    appLongDescription: ''
   });
+
+  // Carregar dados atuais do Firebase quando o componente monta
+  useEffect(() => {
+    if (settings) {
+      setFormData({
+        appTitle: settings.appTitle || '',
+        appDescription: settings.appDescription || '',
+        appLongDescription: settings.appLongDescription || ''
+      });
+    }
+  }, [settings]);
 
   const [saving, setSaving] = useState(false);
 
@@ -34,12 +46,18 @@ const AdminSettingsScreen = ({ navigation, route }) => {
       return;
     }
 
+    if (!formData.appLongDescription.trim()) {
+      Alert.alert('Erro', 'A descrição longa do app é obrigatória');
+      return;
+    }
+
     try {
       setSaving(true);
 
       const settingsData = {
         appTitle: formData.appTitle.trim(),
-        appDescription: formData.appDescription.trim()
+        appDescription: formData.appDescription.trim(),
+        appLongDescription: formData.appLongDescription.trim()
       };
 
       await updateAppSettings(settingsData);
@@ -94,6 +112,19 @@ const AdminSettingsScreen = ({ navigation, route }) => {
             placeholder="Ex: Descubra os bastidores da saúde e estética bucal"
             multiline
             numberOfLines={3}
+          />
+        </View>
+
+        {/* Descrição Longa do App */}
+        <View style={styles.field}>
+          <Text style={styles.label}>Descrição Longa do App *</Text>
+          <TextInput
+            style={[styles.input, styles.textAreaLarge]}
+            value={formData.appLongDescription}
+            onChangeText={(text) => setFormData({...formData, appLongDescription: text})}
+            placeholder="Descrição detalhada sobre o propósito do app..."
+            multiline
+            numberOfLines={6}
           />
         </View>
 
@@ -196,6 +227,10 @@ const styles = StyleSheet.create({
   },
   textArea: {
     height: 80,
+    textAlignVertical: 'top',
+  },
+  textAreaLarge: {
+    height: 120,
     textAlignVertical: 'top',
   },
   previewCard: {

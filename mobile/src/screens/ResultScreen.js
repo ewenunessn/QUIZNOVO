@@ -1,13 +1,15 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '../constants/colors';
+import { getAppSettings } from '../services/questionsService';
 
 const ResultScreen = ({ navigation, route }) => {
   const { score } = route.params;
   const totalQuestions = 10;
   const percentage = Math.round((score / totalQuestions) * 100);
+  const [prizeMessage, setPrizeMessage] = useState('Procure nossa equipe para retirar seu presente especial por ter participado do quiz.');
 
   // Animações fluidas
   const iconScale = useRef(new Animated.Value(0)).current;
@@ -24,9 +26,22 @@ const ResultScreen = ({ navigation, route }) => {
   const buttonScale = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
+    loadSettings();
     saveResult();
     startAnimations();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      const settings = await getAppSettings();
+      if (settings.prizeMessage) {
+        setPrizeMessage(settings.prizeMessage);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar configurações:', error);
+      // Mantém a mensagem padrão se houver erro
+    }
+  };
 
   const startAnimations = () => {
     Animated.sequence([
@@ -248,7 +263,7 @@ const ResultScreen = ({ navigation, route }) => {
           <Ionicons name="gift" size={40} color={colors.primary} />
           <Text style={styles.prizeTitle}>🎁 Você ganhou um brinde!</Text>
           <Text style={styles.prizeText}>
-            Procure nossa equipe para retirar seu presente especial por ter participado do quiz.
+            {prizeMessage}
           </Text>
         </View>
       </Animated.View>

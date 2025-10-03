@@ -185,6 +185,20 @@ const QuizScreen = ({ navigation }) => {
     }, 300);
   }, [questions.length]);
 
+  // Intercepta o botão de voltar do Android
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        confirmExit();
+        return true; // Impede o comportamento padrão
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => subscription?.remove();
+    }, [])
+  );
+
   // Loading screen
   if (loading) {
     return (
@@ -199,20 +213,6 @@ const QuizScreen = ({ navigation }) => {
   if (questions.length === 0) {
     return null;
   }
-
-  // Intercepta o botão de voltar do Android
-  useFocusEffect(
-    React.useCallback(() => {
-      const onBackPress = () => {
-        confirmExit();
-        return true; // Impede o comportamento padrão
-      };
-
-      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
-      return () => subscription?.remove();
-    }, [])
-  );
 
   return (
     <View style={styles.container}>
@@ -474,7 +474,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 16,
     width: '100%',
-    flex: 1,
   },
   trueButton: {
     opacity: 0.9,

@@ -1,9 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../constants/colors';
+import { getAppSettings } from '../services/questionsService';
 
 const HomeScreen = ({ navigation }) => {
+  const [appSettings, setAppSettings] = useState({
+    appTitle: 'Quiz Odontologia Estética',
+    appLongDescription: 'Carregando...'
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadAppSettings();
+  }, []);
+
+  const loadAppSettings = async () => {
+    try {
+      setLoading(true);
+      const settings = await getAppSettings();
+      setAppSettings(settings);
+    } catch (error) {
+      console.error('Erro ao carregar configurações:', error);
+      // Mantém os valores padrão se houver erro
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -12,12 +36,10 @@ const HomeScreen = ({ navigation }) => {
             <Ionicons name="happy-outline" size={60} color={colors.primary} />
           </View>
           
-          <Text style={styles.title}>Quiz Odontologia Estética</Text>
+          <Text style={styles.title}>{appSettings.appTitle}</Text>
           
           <Text style={styles.description}>
-            Este jogo foi criado para transmitir informações sobre os bastidores da odontologia estética — saúde e estética bucal — aspectos que nem sempre aparecem nas redes sociais, mas que são discutidos em consultas e baseados em conhecimentos técnicos.
-            {'\n\n'}
-            Com perguntas de verdadeiro ou falso, você aprenderá a diferenciar expectativas irreais de práticas seguras, adquirindo conhecimento que ajuda a cuidar do sorriso de forma consciente e saudável.
+            {appSettings.appLongDescription}
           </Text>
           
           <TouchableOpacity 

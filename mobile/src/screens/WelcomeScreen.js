@@ -4,11 +4,16 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../constants/colors';
+import { getAppSettings } from '../services/questionsService';
 
 const WelcomeScreen = ({ navigation }) => {
   const [showNameInput, setShowNameInput] = useState(false);
   const [userName, setUserName] = useState('');
   const [savedName, setSavedName] = useState('');
+  const [appSettings, setAppSettings] = useState({
+    appTitle: 'Odontologia Estética',
+    appDescription: 'Descubra os bastidores da saúde e estética bucal'
+  });
   
   // Animações fluidas
   const iconScale = useRef(new Animated.Value(0)).current;
@@ -24,22 +29,35 @@ const WelcomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     checkUserName();
+    loadAppSettings();
   }, []);
 
-  // Atualiza o nome quando a tela ganha foco (volta das configurações)
+  const loadAppSettings = async () => {
+    try {
+      const settings = await getAppSettings();
+      setAppSettings(settings);
+    } catch (error) {
+      console.error('Erro ao carregar configurações:', error);
+      // Mantém as configurações padrão se houver erro
+    }
+  };
+
+  // Atualiza o nome e configurações quando a tela ganha foco (volta das configurações)
   useFocusEffect(
     React.useCallback(() => {
-      const updateName = async () => {
+      const updateData = async () => {
         try {
           const name = await AsyncStorage.getItem('userName');
           if (name && name !== savedName) {
             setSavedName(name);
           }
+          // Recarregar configurações do app
+          await loadAppSettings();
         } catch (error) {
-          console.error('Erro ao atualizar nome:', error);
+          console.error('Erro ao atualizar dados:', error);
         }
       };
-      updateName();
+      updateData();
     }, [savedName])
   );
 
@@ -264,7 +282,7 @@ const WelcomeScreen = ({ navigation }) => {
               }
             ]}
           >
-            Odontologia Estética
+            {appSettings.appTitle}
           </Animated.Text>
           
 
@@ -278,7 +296,7 @@ const WelcomeScreen = ({ navigation }) => {
               }
             ]}
           >
-            Descubra os bastidores da saúde e estética bucal
+            {appSettings.appDescription}
           </Animated.Text>
           
           <Animated.View 

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
+import { Platform } from 'react-native';
 
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -12,10 +13,24 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import AdminScreen from './src/screens/AdminScreen';
 import AdminEditScreen from './src/screens/AdminEditScreen';
 import AdminSettingsScreen from './src/screens/AdminSettingsScreen';
+import AdminWebScreen from './src/screens/AdminWebScreen';
 
 const Stack = createStackNavigator();
 
 export default function App() {
+  // Verificar se deve mostrar admin diretamente
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    const path = window.location.pathname;
+    if (path === '/admin') {
+      return (
+        <>
+          <StatusBar style="light" />
+          <AdminWebScreen navigation={{ goBack: () => window.history.back() }} />
+        </>
+      );
+    }
+  }
+
   return (
     <NavigationContainer>
       <StatusBar style="light" />
@@ -35,6 +50,7 @@ export default function App() {
         <Stack.Screen name="Admin" component={AdminScreen} />
         <Stack.Screen name="AdminEdit" component={AdminEditScreen} />
         <Stack.Screen name="AdminSettings" component={AdminSettingsScreen} />
+        <Stack.Screen name="AdminWeb" component={AdminWebScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

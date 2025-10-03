@@ -36,7 +36,7 @@ const AdminEditScreen = ({ navigation, route }) => {
     'medical-outline',
     'leaf-outline',
     'construct-outline',
-    'balance-outline',
+    'scale-outline',
     'ban-outline',
     'chatbubble-outline',
     'shield-checkmark-outline',

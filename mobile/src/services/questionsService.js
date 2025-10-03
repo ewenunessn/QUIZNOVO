@@ -12,6 +12,20 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
+// Função de teste para verificar conectividade
+export const testFirebaseConnection = async () => {
+  try {
+    console.log('Testando conexão com Firebase...');
+    const testDoc = doc(db, 'test', 'connection');
+    await setDoc(testDoc, { timestamp: new Date(), test: true });
+    console.log('✅ Firebase conectado com sucesso!');
+    return true;
+  } catch (error) {
+    console.error('❌ Erro na conexão com Firebase:', error);
+    return false;
+  }
+};
+
 const COLLECTION_NAME = 'questions';
 const SETTINGS_DOC = 'app-settings';
 
@@ -93,20 +107,27 @@ export const deleteQuestion = async (firebaseId) => {
 // Buscar configurações do app (descrição, etc.)
 export const getAppSettings = async () => {
   try {
+    console.log('Buscando configurações do Firebase...');
     const docRef = doc(db, 'settings', SETTINGS_DOC);
     const docSnap = await getDoc(docRef);
     
     if (docSnap.exists()) {
-      return docSnap.data();
+      const data = docSnap.data();
+      console.log('Configurações encontradas no Firebase:', data);
+      return data;
     } else {
-      // Retorna configurações padrão se não existir
-      return {
+      console.log('Documento de configurações não existe, retornando padrão');
+      const defaultSettings = {
         appDescription: "Descubra os bastidores da saúde e estética bucal",
-        appTitle: "Odontologia Estética"
+        appTitle: "Odontologia Estética",
+        appLongDescription: "Este jogo foi criado para transmitir informações sobre os bastidores da odontologia estética — saúde e estética bucal — aspectos que nem sempre aparecem nas redes sociais, mas que são discutidos em consultas e baseados em conhecimentos técnicos. Com perguntas de verdadeiro ou falso, você aprenderá a diferenciar expectativas irreais de práticas seguras, adquirindo conhecimento que ajuda a cuidar do sorriso de forma consciente e saudável.",
+        prizeMessage: "Procure nossa equipe para retirar seu presente especial por ter participado do quiz."
       };
+      return defaultSettings;
     }
   } catch (error) {
     console.error('Erro ao buscar configurações:', error);
+    console.error('Detalhes do erro:', error.code, error.message);
     throw error;
   }
 };
@@ -114,11 +135,26 @@ export const getAppSettings = async () => {
 // Atualizar configurações do app
 export const updateAppSettings = async (settings) => {
   try {
+    console.log('Tentando salvar configurações no Firebase:', settings);
     const docRef = doc(db, 'settings', SETTINGS_DOC);
+    console.log('Referência do documento:', docRef.path);
+    
+    // Usar setDoc com merge para preservar outros campos
     await setDoc(docRef, settings, { merge: true });
+    console.log('Configurações salvas com sucesso no Firebase');
+    
+    // Verificar se realmente foi salvo
+    const savedDoc = await getDoc(docRef);
+    if (savedDoc.exists()) {
+      console.log('Verificação: dados salvos no Firebase:', savedDoc.data());
+    } else {
+      console.error('Erro: documento não foi criado');
+    }
+    
     return true;
   } catch (error) {
     console.error('Erro ao atualizar configurações:', error);
+    console.error('Detalhes do erro:', error.code, error.message);
     throw error;
   }
 };
@@ -179,7 +215,7 @@ export const initializeDefaultData = async () => {
           pergunta: "A simetria perfeita é indispensável para um sorriso bonito.",
           resposta: false,
           explicacao: "Pequenas assimetrias tornam o sorriso mais natural e harmônico.",
-          icon: "balance-outline"
+          icon: "scale-outline"
         },
         {
           id: 8,
@@ -212,11 +248,26 @@ export const initializeDefaultData = async () => {
       console.log('Dados padrão inicializados com sucesso!');
     }
 
-    // Inicializar configurações padrão
-    await updateAppSettings({
-      appDescription: "Descubra os bastidores da saúde e estética bucal",
-      appTitle: "Odontologia Estética"
-    });
+    // Verificar se já existem configurações antes de sobrescrever
+    try {
+      const docRef = doc(db, 'settings', SETTINGS_DOC);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) {
+        // Só inicializar configurações padrão se não existirem
+        await updateAppSettings({
+          appDescription: "Descubra os bastidores da saúde e estética bucal",
+          appTitle: "Odontologia Estética",
+          appLongDescription: "Este jogo foi criado para transmitir informações sobre os bastidores da odontologia estética — saúde e estética bucal — aspectos que nem sempre aparecem nas redes sociais, mas que são discutidos em consultas e baseados em conhecimentos técnicos. Com perguntas de verdadeiro ou falso, você aprenderá a diferenciar expectativas irreais de práticas seguras, adquirindo conhecimento que ajuda a cuidar do sorriso de forma consciente e saudável.",
+          prizeMessage: "Procure nossa equipe para retirar seu presente especial por ter participado do quiz."
+        });
+        console.log('Configurações padrão inicializadas');
+      } else {
+        console.log('Configurações já existem, mantendo valores atuais');
+      }
+    } catch (error) {
+      console.error('Erro ao verificar configurações:', error);
+    }
 
     return true;
   } catch (error) {
