@@ -3,23 +3,7 @@
   "outputDirectory": "mobile/dist",
   "installCommand": "echo 'Skipping root install'",
   "framework": null,
-  "functions": {
-    "api/ftp-tunnel.js": {
-      "maxDuration": 30
-    },
-    "api/ftp-discover.js": {
-      "maxDuration": 60
-    }
-  },
   "routes": [
-    {
-      "src": "/ftp-panel",
-      "dest": "/api/ftp-panel"
-    },
-    {
-      "src": "/ftp",
-      "dest": "/api/ftp-tunnel/"
-    },
     {
       "src": "/admin",
       "dest": "/index.html"
