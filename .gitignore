@@ -4,42 +4,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Expo
-.expo/
-web-build/
-
-# Native
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# Debug
-npm-debug.*
-*.logcat
-
-# macOS
-.DS_Store
-
-# Temporary files
-*.tmp
-*.temp
-
-# IDE
-.vscode/
-.idea/
-
-# OS generated files
-Thumbs.db
-
-# Build outputs
+# Production builds
+dist/
 build/
-*.tgz
 
 # Environment variables
 .env
@@ -47,4 +14,31 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Expo
+.expo/
+web-build/
+
+# Vercel
 .vercel
+
+# Servidor FTP Android (projeto separado)
+servidor-ftp/
+
+# Logs
+*.log
