@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert, ActivityIndicator, Platform } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, Alert } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../constants/colors';
-import { getQuestions, deleteQuestion, getAppSettings, initializeDefaultData, addQuestion, updateQuestion, updateAppSettings, testFirebaseConnection } from '../services/questionsService';
+import { normalize, moderateScale } from '../utils/responsive';
 
 const AdminWebScreen = ({ navigation }) => {
   const [questions, setQuestions] = useState([]);
