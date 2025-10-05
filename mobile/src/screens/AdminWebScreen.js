@@ -1,9 +1,17 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, Alert } from 'react-native';
-import { WebView } from 'react-native-webview';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, Alert, ScrollView, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../constants/colors';
 import { normalize, moderateScale } from '../utils/responsive';
+import { 
+  getQuestions, 
+  addQuestion, 
+  updateQuestion, 
+  deleteQuestion,
+  getAppSettings,
+  updateAppSettings,
+  initializeDefaultData
+} from '../services/questionsService';
 
 const AdminWebScreen = ({ navigation }) => {
   const [questions, setQuestions] = useState([]);
