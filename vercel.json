@@ -9,6 +9,14 @@
       "dest": "/index.html"
     },
     {
+      "src": "/statistics",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/estatisticas",
+      "dest": "/index.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/$1"
     }
