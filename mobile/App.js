@@ -15,13 +15,15 @@ import AdminScreen from './src/screens/AdminScreen';
 import AdminEditScreen from './src/screens/AdminEditScreen';
 import AdminSettingsScreen from './src/screens/AdminSettingsScreen';
 import AdminWebScreen from './src/screens/AdminWebScreen';
+import StatisticsScreen from './src/screens/StatisticsScreen';
+import FeedbackScreen from './src/screens/FeedbackScreen';
 
 const Stack = createStackNavigator();
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
 
-  // Verificar se deve mostrar admin diretamente
+  // Verificar se deve mostrar admin ou statistics diretamente
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
     const path = window.location.pathname;
     if (path === '/admin') {
@@ -29,6 +31,14 @@ export default function App() {
         <>
           <StatusBar style="light" />
           <AdminWebScreen navigation={{ goBack: () => window.history.back() }} />
+        </>
+      );
+    }
+    if (path === '/statistics' || path === '/estatisticas') {
+      return (
+        <>
+          <StatusBar style="light" />
+          <StatisticsScreen navigation={{ goBack: () => window.history.back() }} />
         </>
       );
     }
@@ -47,7 +57,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <StatusBar style="light" />
-      <Stack.Navigator 
+      <Stack.Navigator
         initialRouteName="Welcome"
         screenOptions={{
           headerShown: false,
@@ -64,6 +74,8 @@ export default function App() {
         <Stack.Screen name="AdminEdit" component={AdminEditScreen} />
         <Stack.Screen name="AdminSettings" component={AdminSettingsScreen} />
         <Stack.Screen name="AdminWeb" component={AdminWebScreen} />
+        <Stack.Screen name="Statistics" component={StatisticsScreen} />
+        <Stack.Screen name="Feedback" component={FeedbackScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -290,11 +290,15 @@ const ResultScreen = ({ navigation, route }) => {
       >
         <TouchableOpacity 
           style={styles.button}
-          onPress={() => navigation.navigate('Welcome')}
+          onPress={() => navigation.navigate('Feedback', { score: validScore, totalQuestions: validTotal })}
         >
-          <Ionicons name="home" size={20} color={colors.white} />
-          <Text style={styles.buttonText}>Voltar ao Início</Text>
+          <Ionicons name="chatbox-ellipses" size={20} color={colors.primary} />
+          <Text style={styles.buttonText}>Continuar</Text>
         </TouchableOpacity>
+        
+        <Text style={styles.feedbackNote}>
+          Deixe seu feedback para finalizar
+        </Text>
       </Animated.View>
     </View>
   );
@@ -404,6 +408,13 @@ const styles = StyleSheet.create({
     fontSize: normalize(16),
     fontWeight: 'bold',
     marginLeft: moderateScale(8),
+  },
+  feedbackNote: {
+    color: colors.secondary,
+    fontSize: normalize(13),
+    textAlign: 'center',
+    marginTop: moderateScale(12),
+    fontStyle: 'italic',
   },
 });
 

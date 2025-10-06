@@ -128,6 +128,23 @@ const AdminScreen = ({ navigation }) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {/* Botão de Estatísticas */}
+        <TouchableOpacity 
+          style={styles.statisticsButton}
+          onPress={() => navigation.navigate('Statistics')}
+        >
+          <View style={styles.statisticsIcon}>
+            <Ionicons name="stats-chart" size={28} color={colors.white} />
+          </View>
+          <View style={styles.statisticsContent}>
+            <Text style={styles.statisticsTitle}>📊 Ver Estatísticas</Text>
+            <Text style={styles.statisticsDescription}>
+              Acesse estatísticas detalhadas de erros e acertos dos usuários
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color={colors.primary} />
+        </TouchableOpacity>
+
         {/* Configurações do App */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -502,6 +519,42 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: colors.white,
+  },
+  statisticsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    padding: 16,
+    borderRadius: 15,
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+  },
+  statisticsIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  statisticsContent: {
+    flex: 1,
+  },
+  statisticsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 4,
+  },
+  statisticsDescription: {
+    fontSize: 12,
+    color: colors.gray,
+    lineHeight: 16,
   },
 });
 

@@ -3,9 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing, Alert, Back
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../constants/colors';
-import { getQuestions } from '../services/questionsService';
+import { getQuestions, saveUserAnswer } from '../services/questionsService';
 import soundEffects from '../utils/soundEffects';
 import { normalize, moderateScale } from '../utils/responsive';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const QuizScreen = ({ navigation }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -74,9 +75,27 @@ const QuizScreen = ({ navigation }) => {
     }
   };
 
-  const handleAnswer = (answer) => {
+  const handleAnswer = async (answer) => {
     const correct = answer === questions[currentQuestion].resposta;
     setIsCorrect(correct);
+
+    // ✅ Salvar resposta no Firebase
+    try {
+      const userName = await AsyncStorage.getItem('userName');
+      await saveUserAnswer({
+        userName: userName || 'Anônimo',
+        questionId: questions[currentQuestion].id,
+        questionText: questions[currentQuestion].pergunta,
+        userAnswer: answer,
+        correctAnswer: questions[currentQuestion].resposta,
+        isCorrect: correct,
+        timestamp: new Date().toISOString()
+      });
+      console.log('✅ Resposta registrada no banco de dados');
+    } catch (error) {
+      console.error('❌ Erro ao salvar resposta:', error);
+      // Não bloqueia o fluxo do quiz se houver erro
+    }
 
     // Reproduz som de acordo com a resposta
     if (correct) {

@@ -177,6 +177,228 @@ export const updateAppSettings = async (settings) => {
   }
 };
 
+// ==================== ESTATÍSTICAS ====================
+
+// Salvar resposta do usuário
+export const saveUserAnswer = async (answerData) => {
+  try {
+    const { userName, questionId, questionText, userAnswer, correctAnswer, isCorrect, timestamp } = answerData;
+    
+    const docRef = await addDoc(collection(db, 'user-answers'), {
+      userName,
+      questionId,
+      questionText,
+      userAnswer,
+      correctAnswer,
+      isCorrect,
+      timestamp: timestamp || new Date().toISOString()
+    });
+    
+    console.log('✅ Resposta salva com ID:', docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error('❌ Erro ao salvar resposta:', error);
+    throw error;
+  }
+};
+
+// Buscar todas as respostas dos usuários
+export const getAllUserAnswers = async () => {
+  try {
+    const q = query(
+      collection(db, 'user-answers'), 
+      orderBy('timestamp', 'desc')
+    );
+    const querySnapshot = await getDocs(q);
+    const answers = [];
+    
+    querySnapshot.forEach((doc) => {
+      answers.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    console.log(`✅ ${answers.length} respostas carregadas`);
+    return answers;
+  } catch (error) {
+    console.error('❌ Erro ao buscar respostas:', error);
+    throw error;
+  }
+};
+
+// Buscar estatísticas agregadas
+export const getStatistics = async () => {
+  try {
+    const answers = await getAllUserAnswers();
+    
+    // Estatísticas gerais
+    const totalAnswers = answers.length;
+    const correctAnswers = answers.filter(a => a.isCorrect).length;
+    const incorrectAnswers = totalAnswers - correctAnswers;
+    const accuracyRate = totalAnswers > 0 ? ((correctAnswers / totalAnswers) * 100).toFixed(1) : 0;
+    
+    // Usuários únicos
+    const uniqueUsers = [...new Set(answers.map(a => a.userName))];
+    const totalUsers = uniqueUsers.length;
+    
+    // Estatísticas por usuário
+    const userStats = {};
+    answers.forEach(answer => {
+      if (!userStats[answer.userName]) {
+        userStats[answer.userName] = {
+          userName: answer.userName,
+          totalAnswers: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          accuracyRate: 0
+        };
+      }
+      
+      userStats[answer.userName].totalAnswers++;
+      if (answer.isCorrect) {
+        userStats[answer.userName].correctAnswers++;
+      } else {
+        userStats[answer.userName].incorrectAnswers++;
+      }
+    });
+    
+    // Calcular taxa de acerto por usuário
+    Object.values(userStats).forEach(user => {
+      user.accuracyRate = ((user.correctAnswers / user.totalAnswers) * 100).toFixed(1);
+    });
+    
+    // Estatísticas por pergunta
+    const questionStats = {};
+    answers.forEach(answer => {
+      if (!questionStats[answer.questionId]) {
+        questionStats[answer.questionId] = {
+          questionId: answer.questionId,
+          questionText: answer.questionText,
+          totalAnswers: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          accuracyRate: 0
+        };
+      }
+      
+      questionStats[answer.questionId].totalAnswers++;
+      if (answer.isCorrect) {
+        questionStats[answer.questionId].correctAnswers++;
+      } else {
+        questionStats[answer.questionId].incorrectAnswers++;
+      }
+    });
+    
+    // Calcular taxa de acerto por pergunta
+    Object.values(questionStats).forEach(question => {
+      question.accuracyRate = ((question.correctAnswers / question.totalAnswers) * 100).toFixed(1);
+    });
+    
+    return {
+      general: {
+        totalAnswers,
+        correctAnswers,
+        incorrectAnswers,
+        accuracyRate,
+        totalUsers
+      },
+      byUser: Object.values(userStats).sort((a, b) => b.totalAnswers - a.totalAnswers),
+      byQuestion: Object.values(questionStats).sort((a, b) => a.questionId - b.questionId),
+      allAnswers: answers
+    };
+  } catch (error) {
+    console.error('❌ Erro ao calcular estatísticas:', error);
+    throw error;
+  }
+};
+
+// ==================== FEEDBACK ====================
+
+// Salvar feedback do usuário
+export const saveFeedback = async (feedbackData) => {
+  try {
+    const { userName, rating, comment, score, totalQuestions, timestamp } = feedbackData;
+    
+    const docRef = await addDoc(collection(db, 'feedbacks'), {
+      userName,
+      rating,
+      comment: comment || '',
+      score,
+      totalQuestions,
+      percentage: Math.round((score / totalQuestions) * 100),
+      timestamp: timestamp || new Date().toISOString()
+    });
+    
+    console.log('✅ Feedback salvo com ID:', docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error('❌ Erro ao salvar feedback:', error);
+    throw error;
+  }
+};
+
+// Buscar todos os feedbacks
+export const getAllFeedbacks = async () => {
+  try {
+    const q = query(
+      collection(db, 'feedbacks'), 
+      orderBy('timestamp', 'desc')
+    );
+    const querySnapshot = await getDocs(q);
+    const feedbacks = [];
+    
+    querySnapshot.forEach((doc) => {
+      feedbacks.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    console.log(`✅ ${feedbacks.length} feedbacks carregados`);
+    return feedbacks;
+  } catch (error) {
+    console.error('❌ Erro ao buscar feedbacks:', error);
+    throw error;
+  }
+};
+
+// Buscar estatísticas de feedbacks
+export const getFeedbackStatistics = async () => {
+  try {
+    const feedbacks = await getAllFeedbacks();
+    
+    if (feedbacks.length === 0) {
+      return {
+        totalFeedbacks: 0,
+        averageRating: 0,
+        ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        feedbacks: []
+      };
+    }
+    
+    // Calcular média de avaliação
+    const totalRating = feedbacks.reduce((sum, f) => sum + f.rating, 0);
+    const averageRating = (totalRating / feedbacks.length).toFixed(1);
+    
+    // Distribuição de avaliações
+    const ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    feedbacks.forEach(f => {
+      ratingDistribution[f.rating]++;
+    });
+    
+    return {
+      totalFeedbacks: feedbacks.length,
+      averageRating: parseFloat(averageRating),
+      ratingDistribution,
+      feedbacks
+    };
+  } catch (error) {
+    console.error('❌ Erro ao calcular estatísticas de feedback:', error);
+    throw error;
+  }
+};
+
 // Inicializar dados padrão (executar uma vez)
 export const initializeDefaultData = async () => {
   try {

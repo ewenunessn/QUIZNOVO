@@ -3,10 +3,15 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+package-lock.json
+yarn.lock
 
 # Production builds
 dist/
 build/
+*.apk
+*.ipa
+*.aab
 
 # Environment variables
 .env
@@ -20,6 +25,8 @@ build/
 .idea/
 *.swp
 *.swo
+*.sublime-project
+*.sublime-workspace
 
 # OS generated files
 .DS_Store
@@ -29,16 +36,53 @@ build/
 .Trashes
 ehthumbs.db
 Thumbs.db
+desktop.ini
 
 # Expo
 .expo/
+.expo-shared/
 web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Metro
+.metro-health-check*
 
 # Vercel
 .vercel
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
 
 # Servidor FTP Android (projeto separado)
 servidor-ftp/
 
 # Logs
 *.log
+logs/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# React Native
+*.hprof
+.gradle/
+local.properties
+
+# Backup files
+*.bak
+*.backup
+*~
