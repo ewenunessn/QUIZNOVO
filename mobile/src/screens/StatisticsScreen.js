@@ -7,11 +7,13 @@ import {
   StyleSheet, 
   ActivityIndicator,
   RefreshControl,
-  Alert
+  Alert,
+  Modal,
+  Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../constants/colors';
-import { getStatistics, getFeedbackStatistics } from '../services/questionsService';
+import { getStatistics, getFeedbackStatistics, deleteAllUserData } from '../services/questionsService';
 import { normalize, moderateScale } from '../utils/responsive';
 
 const StatisticsScreen = ({ navigation }) => {
@@ -20,6 +22,8 @@ const StatisticsScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('general'); // general, users, questions, details, feedbacks
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   useEffect(() => {
     loadStatistics();
@@ -45,6 +49,47 @@ const StatisticsScreen = ({ navigation }) => {
     setRefreshing(true);
     await loadStatistics();
     setRefreshing(false);
+  };
+
+  const handleDeleteUser = (userName) => {
+    setUserToDelete(userName);
+    setDeleteModalVisible(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    
+    try {
+      setDeleteModalVisible(false);
+      setLoading(true);
+      
+      const result = await deleteAllUserData(userToDelete);
+      
+      await loadStatistics();
+      
+      if (Platform.OS === 'web') {
+        alert(`Sucesso!\n${result.totalDeleted} registros de ${userToDelete} foram deletados.`);
+      } else {
+        Alert.alert(
+          'Sucesso',
+          `${result.totalDeleted} registros de ${userToDelete} foram deletados.`
+        );
+      }
+    } catch (error) {
+      if (Platform.OS === 'web') {
+        alert('Erro ao deletar: ' + error.message);
+      } else {
+        Alert.alert('Erro', 'Não foi possível deletar os dados: ' + error.message);
+      }
+    } finally {
+      setUserToDelete(null);
+      setLoading(false);
+    }
+  };
+
+  const cancelDeleteUser = () => {
+    setDeleteModalVisible(false);
+    setUserToDelete(null);
   };
 
   if (loading) {
@@ -127,8 +172,16 @@ const StatisticsScreen = ({ navigation }) => {
                 <Ionicons name="person-circle" size={24} color={colors.primary} />
                 <Text style={styles.userName}>{user.userName}</Text>
               </View>
-              <View style={styles.userBadge}>
-                <Text style={styles.userBadgeText}>{user.accuracyRate}%</Text>
+              <View style={styles.userHeaderActions}>
+                <View style={styles.userBadge}>
+                  <Text style={styles.userBadgeText}>{user.accuracyRate}%</Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.deleteUserButton}
+                  onPress={() => handleDeleteUser(user.userName)}
+                >
+                  <Ionicons name="trash-outline" size={20} color={colors.error} />
+                </TouchableOpacity>
               </View>
             </View>
             
@@ -488,6 +541,65 @@ const StatisticsScreen = ({ navigation }) => {
         {activeTab === 'feedbacks' && renderFeedbacks()}
         {activeTab === 'details' && renderDetailedAnswers()}
       </ScrollView>
+
+      {/* Modal de Confirmação de Exclusão de Usuário */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={deleteModalVisible}
+        onRequestClose={cancelDeleteUser}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalIcon}>
+              <Ionicons name="warning" size={48} color={colors.error} />
+            </View>
+            
+            <Text style={styles.modalTitle}>Confirmar Exclusão</Text>
+            
+            <Text style={styles.modalMessage}>
+              Tem certeza que deseja excluir TODOS os dados de:
+            </Text>
+            
+            {userToDelete && (
+              <View style={styles.modalUserPreview}>
+                <Ionicons name="person-circle" size={32} color={colors.primary} />
+                <Text style={styles.modalUserName}>{userToDelete}</Text>
+              </View>
+            )}
+            
+            <Text style={styles.modalWarning}>
+              ⚠️ Isso irá deletar:
+            </Text>
+            <Text style={styles.modalWarningList}>
+              • Todas as respostas do quiz{'\n'}
+              • Todos os feedbacks{'\n'}
+              • Estatísticas relacionadas
+            </Text>
+            
+            <Text style={styles.modalWarningFinal}>
+              Esta ação não pode ser desfeita!
+            </Text>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={cancelDeleteUser}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.confirmDeleteButton]}
+                onPress={confirmDeleteUser}
+              >
+                <Ionicons name="trash" size={18} color={colors.white} />
+                <Text style={styles.confirmDeleteButtonText}>Excluir Tudo</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -1023,6 +1135,122 @@ const styles = StyleSheet.create({
     fontSize: normalize(10),
     color: colors.gray,
     fontStyle: 'italic',
+  },
+  userHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: moderateScale(8),
+  },
+  deleteUserButton: {
+    width: moderateScale(36),
+    height: moderateScale(36),
+    borderRadius: moderateScale(18),
+    backgroundColor: '#ffebee',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: moderateScale(20),
+  },
+  modalContent: {
+    backgroundColor: colors.white,
+    borderRadius: moderateScale(20),
+    padding: moderateScale(24),
+    width: '100%',
+    maxWidth: moderateScale(400),
+    alignItems: 'center',
+  },
+  modalIcon: {
+    width: moderateScale(80),
+    height: moderateScale(80),
+    borderRadius: moderateScale(40),
+    backgroundColor: '#ffebee',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: moderateScale(16),
+  },
+  modalTitle: {
+    fontSize: normalize(22),
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: moderateScale(12),
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: normalize(16),
+    color: colors.gray,
+    textAlign: 'center',
+    marginBottom: moderateScale(16),
+    lineHeight: normalize(22),
+  },
+  modalUserPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: moderateScale(12),
+    backgroundColor: colors.secondary,
+    padding: moderateScale(12),
+    borderRadius: moderateScale(12),
+    marginBottom: moderateScale(16),
+  },
+  modalUserName: {
+    fontSize: normalize(18),
+    fontWeight: 'bold',
+    color: colors.primary,
+  },
+  modalWarning: {
+    fontSize: normalize(14),
+    color: colors.error,
+    fontWeight: '600',
+    marginBottom: moderateScale(8),
+    textAlign: 'center',
+  },
+  modalWarningList: {
+    fontSize: normalize(13),
+    color: colors.gray,
+    lineHeight: normalize(20),
+    marginBottom: moderateScale(16),
+    textAlign: 'left',
+  },
+  modalWarningFinal: {
+    fontSize: normalize(13),
+    color: colors.error,
+    fontWeight: '600',
+    marginBottom: moderateScale(24),
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: moderateScale(12),
+    width: '100%',
+  },
+  modalButton: {
+    flex: 1,
+    flexDirection: 'row',
+    paddingVertical: moderateScale(14),
+    borderRadius: moderateScale(12),
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: moderateScale(6),
+  },
+  cancelButton: {
+    backgroundColor: colors.secondary,
+  },
+  cancelButtonText: {
+    fontSize: normalize(16),
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  confirmDeleteButton: {
+    backgroundColor: colors.error,
+  },
+  confirmDeleteButtonText: {
+    fontSize: normalize(16),
+    fontWeight: '600',
+    color: colors.white,
   },
 });
 

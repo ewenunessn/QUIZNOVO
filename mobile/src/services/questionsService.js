@@ -8,7 +8,8 @@ import {
   deleteDoc, 
   setDoc,
   orderBy,
-  query 
+  query,
+  where
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
@@ -309,6 +310,76 @@ export const getStatistics = async () => {
     };
   } catch (error) {
     console.error('❌ Erro ao calcular estatísticas:', error);
+    throw error;
+  }
+};
+
+// Deletar todas as respostas de um usuário específico
+export const deleteUserAnswers = async (userName) => {
+  try {
+    const q = query(
+      collection(db, 'user-answers'),
+      where('userName', '==', userName)
+    );
+    const querySnapshot = await getDocs(q);
+    
+    const deletePromises = [];
+    querySnapshot.forEach((doc) => {
+      deletePromises.push(deleteDoc(doc.ref));
+    });
+    
+    await Promise.all(deletePromises);
+    console.log(`✅ ${deletePromises.length} respostas de ${userName} deletadas`);
+    return deletePromises.length;
+  } catch (error) {
+    console.error('❌ Erro ao deletar respostas do usuário:', error);
+    throw error;
+  }
+};
+
+// Deletar todos os feedbacks de um usuário específico
+export const deleteUserFeedbacks = async (userName) => {
+  try {
+    const q = query(
+      collection(db, 'feedbacks'),
+      where('userName', '==', userName)
+    );
+    const querySnapshot = await getDocs(q);
+    
+    const deletePromises = [];
+    querySnapshot.forEach((doc) => {
+      deletePromises.push(deleteDoc(doc.ref));
+    });
+    
+    await Promise.all(deletePromises);
+    console.log(`✅ ${deletePromises.length} feedbacks de ${userName} deletados`);
+    return deletePromises.length;
+  } catch (error) {
+    console.error('❌ Erro ao deletar feedbacks do usuário:', error);
+    throw error;
+  }
+};
+
+// Deletar todos os dados de um usuário (respostas + feedbacks)
+export const deleteAllUserData = async (userName) => {
+  try {
+    console.log(`🗑️ Deletando todos os dados de ${userName}...`);
+    
+    const [answersDeleted, feedbacksDeleted] = await Promise.all([
+      deleteUserAnswers(userName),
+      deleteUserFeedbacks(userName)
+    ]);
+    
+    const totalDeleted = answersDeleted + feedbacksDeleted;
+    console.log(`✅ Total de ${totalDeleted} registros deletados de ${userName}`);
+    
+    return {
+      answersDeleted,
+      feedbacksDeleted,
+      totalDeleted
+    };
+  } catch (error) {
+    console.error('❌ Erro ao deletar dados do usuário:', error);
     throw error;
   }
 };
