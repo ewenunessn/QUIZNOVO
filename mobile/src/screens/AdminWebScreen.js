@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, Alert, ScrollView, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, Alert, ScrollView, TextInput, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../constants/colors';
 import { normalize, moderateScale } from '../utils/responsive';
@@ -19,6 +19,8 @@ const AdminWebScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState('list'); // 'list', 'edit', 'settings'
   const [editingQuestion, setEditingQuestion] = useState(null);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -48,41 +50,43 @@ const AdminWebScreen = ({ navigation }) => {
     }
   };
 
-  const handleDeleteQuestion = async (question) => {
-    // Usar window.confirm na web ao invés de Alert.alert
-    const confirmed = Platform.OS === 'web' 
-      ? window.confirm(`Tem certeza que deseja excluir a pergunta ${question.id}?`)
-      : await new Promise((resolve) => {
-          Alert.alert(
-            'Confirmar Exclusão',
-            `Tem certeza que deseja excluir a pergunta ${question.id}?`,
-            [
-              { text: 'Cancelar', style: 'cancel', onPress: () => resolve(false) },
-              { text: 'Excluir', style: 'destructive', onPress: () => resolve(true) }
-            ]
-          );
-        });
+  const handleDeleteQuestion = (question) => {
+    console.log('🗑️ Abrindo modal de exclusão para pergunta:', question.id);
+    setQuestionToDelete(question);
+    setDeleteModalVisible(true);
+  };
 
-    if (confirmed) {
-      try {
-        console.log('Excluindo pergunta:', question.firebaseId);
-        await deleteQuestion(question.firebaseId);
-        await loadData();
-        
-        if (Platform.OS === 'web') {
-          alert('Pergunta excluída com sucesso!');
-        } else {
-          Alert.alert('Sucesso', 'Pergunta excluída com sucesso!');
-        }
-      } catch (error) {
-        console.error('Erro ao excluir:', error);
-        if (Platform.OS === 'web') {
-          alert('Erro ao excluir a pergunta: ' + error.message);
-        } else {
-          Alert.alert('Erro', 'Não foi possível excluir a pergunta: ' + error.message);
-        }
+  const confirmDelete = async () => {
+    if (!questionToDelete) return;
+    
+    try {
+      setDeleteModalVisible(false);
+      setLoading(true);
+      console.log('Excluindo pergunta:', questionToDelete.firebaseId);
+      await deleteQuestion(questionToDelete.firebaseId);
+      await loadData();
+      
+      if (Platform.OS === 'web') {
+        alert('Pergunta excluída com sucesso!');
+      } else {
+        Alert.alert('Sucesso', 'Pergunta excluída com sucesso!');
       }
+    } catch (error) {
+      console.error('Erro ao excluir:', error);
+      if (Platform.OS === 'web') {
+        alert('Erro ao excluir: ' + error.message);
+      } else {
+        Alert.alert('Erro', 'Não foi possível excluir a pergunta: ' + error.message);
+      }
+    } finally {
+      setQuestionToDelete(null);
+      setLoading(false);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalVisible(false);
+    setQuestionToDelete(null);
   };
 
   const handleEditQuestion = (question) => {
@@ -146,12 +150,20 @@ const AdminWebScreen = ({ navigation }) => {
           <Ionicons name="arrow-back" size={24} color={colors.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Painel de Administração</Text>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={handleAddQuestion}
-        >
-          <Ionicons name="add" size={24} color={colors.white} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.refreshButton}
+            onPress={loadData}
+          >
+            <Ionicons name="refresh" size={22} color={colors.white} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={handleAddQuestion}
+          >
+            <Ionicons name="add" size={24} color={colors.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={styles.content}>
@@ -224,6 +236,57 @@ const AdminWebScreen = ({ navigation }) => {
           ))}
         </View>
       </ScrollView>
+
+      {/* Modal de Confirmação de Exclusão */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={deleteModalVisible}
+        onRequestClose={cancelDelete}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalIcon}>
+              <Ionicons name="warning" size={48} color={colors.error} />
+            </View>
+            
+            <Text style={styles.modalTitle}>Confirmar Exclusão</Text>
+            
+            <Text style={styles.modalMessage}>
+              Tem certeza que deseja excluir a pergunta {questionToDelete?.id}?
+            </Text>
+            
+            {questionToDelete && (
+              <View style={styles.modalQuestionPreview}>
+                <Text style={styles.modalQuestionText} numberOfLines={2}>
+                  "{questionToDelete.pergunta}"
+                </Text>
+              </View>
+            )}
+            
+            <Text style={styles.modalWarning}>
+              Esta ação não pode ser desfeita!
+            </Text>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={cancelDelete}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.confirmButton]}
+                onPress={confirmDelete}
+              >
+                <Ionicons name="trash" size={18} color={colors.white} />
+                <Text style={styles.confirmButtonText}>Excluir</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -544,6 +607,18 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
   },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  refreshButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   addButton: {
     width: 40,
     height: 40,
@@ -745,6 +820,95 @@ const styles = StyleSheet.create({
   iconOptionSelected: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  modalIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#ffebee',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: colors.gray,
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 22,
+  },
+  modalQuestionPreview: {
+    backgroundColor: colors.secondary,
+    padding: 12,
+    borderRadius: 12,
+    width: '100%',
+    marginBottom: 16,
+  },
+  modalQuestionText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  modalWarning: {
+    fontSize: 13,
+    color: colors.error,
+    fontWeight: '600',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  modalButton: {
+    flex: 1,
+    flexDirection: 'row',
+    paddingVertical: 14,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+  },
+  cancelButton: {
+    backgroundColor: colors.secondary,
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  confirmButton: {
+    backgroundColor: colors.error,
+  },
+  confirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.white,
   },
 });
 

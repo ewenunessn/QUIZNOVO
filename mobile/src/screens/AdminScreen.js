@@ -50,6 +50,7 @@ const AdminScreen = ({ navigation }) => {
   };
 
   const handleDeleteQuestion = (question) => {
+    console.log('🗑️ Abrindo modal de exclusão para pergunta:', question.id);
     setQuestionToDelete(question);
     setDeleteModalVisible(true);
   };
