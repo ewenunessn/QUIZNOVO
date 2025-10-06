@@ -35,14 +35,24 @@ export const getQuestions = async () => {
     const q = query(collection(db, COLLECTION_NAME), orderBy('id', 'asc'));
     const querySnapshot = await getDocs(q);
     const questions = [];
+    const seenIds = new Set(); // ✅ Prevenir duplicatas
     
     querySnapshot.forEach((doc) => {
-      questions.push({
-        firebaseId: doc.id,
-        ...doc.data()
-      });
+      const data = doc.data();
+      
+      // ✅ Verificar se já existe pergunta com mesmo ID
+      if (!seenIds.has(data.id)) {
+        seenIds.add(data.id);
+        questions.push({
+          firebaseId: doc.id,
+          ...data
+        });
+      } else {
+        console.warn(`⚠️ Pergunta duplicada detectada (ID: ${data.id}), ignorando...`);
+      }
     });
     
+    console.log(`✅ ${questions.length} perguntas únicas carregadas`);
     return questions;
   } catch (error) {
     console.error('Erro ao buscar perguntas:', error);

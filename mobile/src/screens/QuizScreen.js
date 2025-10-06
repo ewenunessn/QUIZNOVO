@@ -25,10 +25,22 @@ const QuizScreen = ({ navigation }) => {
   const buttonsOpacity = useRef(new Animated.Value(1)).current;
   const explanationOpacity = useRef(new Animated.Value(0)).current;
 
-  // Carregar perguntas do Firebase
+  // Carregar perguntas do Firebase (apenas uma vez)
   useEffect(() => {
-    loadQuestions();
-  }, []);
+    let isMounted = true; // ✅ Prevenir race condition
+    
+    const fetchQuestions = async () => {
+      if (isMounted) {
+        await loadQuestions();
+      }
+    };
+    
+    fetchQuestions();
+    
+    return () => {
+      isMounted = false; // ✅ Cleanup
+    };
+  }, []); // ✅ Array vazio = executa apenas uma vez
 
   // ✅ Sincronizar scoreRef com score inicial
   useEffect(() => {
@@ -39,8 +51,17 @@ const QuizScreen = ({ navigation }) => {
     try {
       setLoading(true);
       const questionsData = await getQuestions();
+      
+      console.log(`📊 Total de perguntas recebidas: ${questionsData.length}`);
+      
       if (questionsData.length > 0) {
-        setQuestions(questionsData);
+        // ✅ Garantir que não há duplicatas antes de setar
+        const uniqueQuestions = questionsData.filter((question, index, self) =>
+          index === self.findIndex((q) => q.id === question.id)
+        );
+        
+        console.log(`✅ Perguntas únicas após filtro: ${uniqueQuestions.length}`);
+        setQuestions(uniqueQuestions);
       } else {
         Alert.alert('Erro', 'Nenhuma pergunta encontrada. Verifique sua conexão.');
         navigation.goBack();
